@@ -1,12 +1,11 @@
 package com.vutka.vision.emoji
 
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.vision.CameraSource
@@ -14,6 +13,7 @@ import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
 import com.google.android.gms.vision.face.LargestFaceFocusingProcessor
+import kotlinx.android.synthetic.main.fragment_scanner.*
 
 /**
  * Created by abidhasanshaon on 11/3/18.
@@ -37,7 +37,9 @@ class ScannerFragment : Fragment() {
                 field = FaceDetector.Builder(context)
                         .setClassificationType(FaceDetector.NO_CLASSIFICATIONS)
                         .setLandmarkType(FaceDetector.ALL_LANDMARKS)
-                        .build()
+                        .build().apply {
+                            setProcessor(LargestFaceFocusingProcessor(this, FaceTracker()))
+                        }
                 field
             }
         set(value){
@@ -54,25 +56,42 @@ class ScannerFragment : Fragment() {
             inflater.inflate(R.layout.fragment_scanner, container, false)
 
 
+    @SuppressLint("MissingPermission")
     override fun onResume() {
         super.onResume()
 
         checkGooglePlayService {
             createCameraSource()
-            cameraSource?.let {
-                Log.d(TAG , "This will show as camera source surly not null")
+            cameraSource?.apply {
+
             }
         }
     }
 
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+    }
+
     private fun createCameraSource() {
+        stopCameraSource()
+        detector = null
         cameraSource = CameraSource.Builder(context , detector)
-                .setAutoFocusEnabled(true)
                 .setRequestedPreviewSize(640,480)
                 .setRequestedFps(3f)
                 .setFacing(CameraSource.CAMERA_FACING_FRONT)
                 .build()
 
+    }
+
+    private fun stopCameraSource() {
+        cameraSource?.apply {
+            stop()
+            release()
+            detector?.release()
+            cameraSource = null
+            detector = null
+        }
     }
 
 
@@ -84,4 +103,5 @@ class ScannerFragment : Fragment() {
             }
         }
     }
+
 }
