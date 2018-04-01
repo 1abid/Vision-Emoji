@@ -59,14 +59,11 @@ class ScannerFragment : Fragment() {
     @SuppressLint("MissingPermission")
     override fun onResume() {
         super.onResume()
-
-        checkGooglePlayService {
-            createCameraSource()
-            cameraSource?.apply {
-
-            }
-        }
+        createCameraSource()
+        startCameraSource()
     }
+
+
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -82,6 +79,16 @@ class ScannerFragment : Fragment() {
                 .setFacing(CameraSource.CAMERA_FACING_FRONT)
                 .build()
 
+
+    }
+
+    private fun startCameraSource() {
+        checkGooglePlayService {
+            createCameraSource()
+            cameraSource?.also {
+                preview.start(it)
+            }
+        }
     }
 
     private fun stopCameraSource() {
