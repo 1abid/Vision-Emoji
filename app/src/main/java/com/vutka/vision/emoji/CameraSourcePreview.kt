@@ -22,7 +22,7 @@ class CameraSourcePreview(context: Context, attributeSet: AttributeSet) : ViewGr
 
 
     private var surfaceRequested: Boolean = false
-    private var surfaceAvailavle: Boolean = false
+    private var surfaceAvailable: Boolean = false
     private var surfaceView: SurfaceView
     private var cameraSource: CameraSource? = null
         set(value) {
@@ -49,7 +49,7 @@ class CameraSourcePreview(context: Context, attributeSet: AttributeSet) : ViewGr
     @Throws(IOException::class)
     @SuppressLint("MissingPermission")
     private fun startPreviewIfReady() {
-        if (surfaceAvailavle && surfaceRequested){
+        if (surfaceAvailable && surfaceRequested){
             cameraSource?.let {
                 Log.i(logTAG, "CameraSource preview  width ${it?.previewSize?.width} ${it?.previewSize?.width}")
                 it.start(surfaceView.holder)
@@ -139,12 +139,12 @@ class CameraSourcePreview(context: Context, attributeSet: AttributeSet) : ViewGr
 
         override fun surfaceDestroyed(holder: SurfaceHolder?) {
             Log.i(logTAG, "surfaceView destroyed ")
-            surfaceAvailavle = false
+            surfaceAvailable = false
         }
 
         override fun surfaceCreated(holder: SurfaceHolder?) {
-            surfaceAvailavle = true
-            Log.i(logTAG, "surfaceView created $surfaceAvailavle")
+            surfaceAvailable = true
+            Log.i(logTAG, "surfaceView created $surfaceAvailable")
 
             try {
                 startPreviewIfReady()
@@ -154,6 +154,15 @@ class CameraSourcePreview(context: Context, attributeSet: AttributeSet) : ViewGr
             }
         }
 
+    }
+
+    fun stop() {
+        cameraSource?.stop()
+    }
+
+    fun releaseCamreSource(){
+        cameraSource?.release()
+        cameraSource = null
     }
 
 }

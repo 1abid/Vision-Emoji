@@ -63,7 +63,15 @@ class ScannerFragment : Fragment() {
         startCameraSource()
     }
 
+    override fun onPause() {
+        super.onPause()
+        preview.stop()
+    }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraSource?.release()
+    }
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -93,6 +101,8 @@ class ScannerFragment : Fragment() {
 
     private fun stopCameraSource() {
         cameraSource?.apply {
+            preview?.stop()
+            preview?.releaseCamreSource()
             stop()
             release()
             detector?.release()
