@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:keepScreenOn="true"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="false">
 
     <com.vutka.vision.emoji.CameraSourcePreview
         android:id="@+id/preview"
@@ -16,4 +16,25 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"></com.vutka.vision.emoji.CameraSourcePreview>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="48dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        android:background="@color/colorChrome">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/capture_photo"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_centerInParent="true"
+            android:padding="10dp"
+            app:lottie_rawRes="@raw/camera_button"
+            app:lottie_autoPlay="false"
+            app:lottie_loop="false"/>
+    </RelativeLayout>
 </android.support.constraint.ConstraintLayout>

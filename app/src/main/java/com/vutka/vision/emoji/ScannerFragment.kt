@@ -2,10 +2,15 @@ package com.vutka.vision.emoji
 
 
 import android.annotation.SuppressLint
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.content.res.ResourcesCompat
 import android.util.Log
 import android.view.*
+import com.airbnb.lottie.LottieAnimationView
+import com.airbnb.lottie.LottieComposition
+import com.airbnb.lottie.LottieDrawable
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.vision.CameraSource
@@ -52,8 +57,46 @@ class ScannerFragment : Fragment() {
 
 
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
             inflater.inflate(R.layout.fragment_scanner, container, false)
+
+
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        inflater?.inflate(R.menu.menu_camera_preview, menu)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?) {
+        menu?.findItem(R.id.camera_facing)?.also {
+            it.icon = ResourcesCompat.getDrawable(resources, getCameraFacingType(), context?.theme)
+        }
+        super.onPrepareOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = item.run {
+
+            when(itemId){
+
+                R.id.camera_facing->{
+                    Log.d(TAG,"camera switch click")
+                    true
+                }else -> true
+
+            }
+
+        }
+
+
+    private fun getCameraFacingType(): Int =
+        if(cameraSource?.cameraFacing == CameraSource.CAMERA_FACING_FRONT)
+            R.drawable.ic_camera_rear
+        else
+            R.drawable.ic_camera_front
+
 
 
     @SuppressLint("MissingPermission")
@@ -76,6 +119,10 @@ class ScannerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        capture_photo?.setOnClickListener{
+            (it as LottieAnimationView).playAnimation()
+        }
     }
 
     private fun createCameraSource() {
@@ -102,7 +149,7 @@ class ScannerFragment : Fragment() {
     private fun stopCameraSource() {
         cameraSource?.apply {
             preview?.stop()
-            preview?.releaseCamreSource()
+            preview?.releaseCameraSource()
             stop()
             release()
             detector?.release()
