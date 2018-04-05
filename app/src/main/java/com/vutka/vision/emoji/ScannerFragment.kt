@@ -2,15 +2,12 @@ package com.vutka.vision.emoji
 
 
 import android.annotation.SuppressLint
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.res.ResourcesCompat
 import android.util.Log
 import android.view.*
 import com.airbnb.lottie.LottieAnimationView
-import com.airbnb.lottie.LottieComposition
-import com.airbnb.lottie.LottieDrawable
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.vision.CameraSource
@@ -83,12 +80,26 @@ class ScannerFragment : Fragment() {
 
                 R.id.camera_facing->{
                     Log.d(TAG,"camera switch click")
+                    toggleCamera()
+                    activity?.invalidateOptionsMenu()
                     true
                 }else -> true
 
             }
 
         }
+
+    private fun toggleCamera() {
+        cameraSource?.also {
+            if(it.cameraFacing == CameraSource.CAMERA_FACING_BACK)
+                createCameraSource(CameraSource.CAMERA_FACING_FRONT)
+            else
+                createCameraSource(CameraSource.CAMERA_FACING_BACK)
+
+            startCameraSource()
+        }
+
+    }
 
 
     private fun getCameraFacingType(): Int =
@@ -102,7 +113,7 @@ class ScannerFragment : Fragment() {
     @SuppressLint("MissingPermission")
     override fun onResume() {
         super.onResume()
-        createCameraSource()
+        createCameraSource(CameraSource.CAMERA_FACING_FRONT)
         startCameraSource()
     }
 
@@ -125,13 +136,13 @@ class ScannerFragment : Fragment() {
         }
     }
 
-    private fun createCameraSource() {
+    private fun createCameraSource(cameraFacing: Int?) {
         stopCameraSource()
         detector = null
         cameraSource = CameraSource.Builder(context , detector)
                 .setRequestedPreviewSize(640,480)
                 .setRequestedFps(3f)
-                .setFacing(CameraSource.CAMERA_FACING_FRONT)
+                .setFacing(cameraFacing!!)
                 .build()
 
 
@@ -139,7 +150,7 @@ class ScannerFragment : Fragment() {
 
     private fun startCameraSource() {
         checkGooglePlayService {
-            createCameraSource()
+            createCameraSource(cameraSource?.cameraFacing)
             cameraSource?.also {
                 preview.start(it)
             }
@@ -148,10 +159,10 @@ class ScannerFragment : Fragment() {
 
     private fun stopCameraSource() {
         cameraSource?.apply {
-            preview?.stop()
-            preview?.releaseCameraSource()
             stop()
             release()
+            preview?.stop()
+            preview?.releaseCameraSource()
             detector?.release()
             cameraSource = null
             detector = null

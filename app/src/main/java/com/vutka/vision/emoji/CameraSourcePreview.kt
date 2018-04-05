@@ -161,7 +161,6 @@ class CameraSourcePreview(context: Context, attributeSet: AttributeSet) : ViewGr
     }
 
     fun releaseCameraSource(){
-        cameraSource?.release()
         cameraSource = null
     }
 
