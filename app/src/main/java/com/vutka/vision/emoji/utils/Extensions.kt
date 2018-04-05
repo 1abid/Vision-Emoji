@@ -1,4 +1,4 @@
-package com.vutka.vision.emoji
+package com.vutka.vision.emoji.utils
 
 import android.content.Context
 import android.content.pm.PackageManager

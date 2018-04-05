@@ -1,10 +1,11 @@
-package com.vutka.vision.emoji
+package com.vutka.vision.emoji.ui
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.vutka.vision.emoji.R
 import kotlinx.android.synthetic.main.missing_permission_layout.*
 
 /**
@@ -17,7 +18,7 @@ class MissingPermissionFragment : Fragment() {
     private val TAG = MissingPermissionFragment::class.java.simpleName
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-            inflater.inflate(R.layout.missing_permission_layout , container , false)
+            inflater.inflate(R.layout.missing_permission_layout, container , false)
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) = super.onViewCreated(view , savedInstanceState).run {

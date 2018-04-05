@@ -1,4 +1,4 @@
-package com.vutka.vision.emoji
+package com.vutka.vision.emoji.detection
 
 import com.google.android.gms.vision.Tracker
 import com.google.android.gms.vision.face.Face

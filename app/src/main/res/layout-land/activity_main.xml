@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="false"
-    tools:context="com.vutka.vision.emoji.MainActivity">
+    tools:context="com.vutka.vision.emoji.ui.MainActivity">
 
 
     <FrameLayout

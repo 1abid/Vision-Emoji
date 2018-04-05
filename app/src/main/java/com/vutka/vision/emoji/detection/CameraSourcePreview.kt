@@ -1,4 +1,4 @@
-package com.vutka.vision.emoji
+package com.vutka.vision.emoji.detection
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -9,6 +9,7 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.ViewGroup
 import com.google.android.gms.vision.CameraSource
+import com.vutka.vision.emoji.utils.forEachChildren
 import java.io.IOException
 
 /**

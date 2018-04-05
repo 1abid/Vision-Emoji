@@ -1,11 +1,10 @@
-package com.vutka.vision.emoji
+package com.vutka.vision.emoji.ui
 
 
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.res.ResourcesCompat
-import android.util.Log
 import android.view.*
 import com.airbnb.lottie.LottieAnimationView
 import com.google.android.gms.common.ConnectionResult
@@ -15,6 +14,8 @@ import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
 import com.google.android.gms.vision.face.LargestFaceFocusingProcessor
+import com.vutka.vision.emoji.detection.FaceTracker
+import com.vutka.vision.emoji.R
 import kotlinx.android.synthetic.main.fragment_scanner.*
 
 /**
@@ -78,8 +79,7 @@ class ScannerFragment : Fragment() {
 
             when(itemId){
 
-                R.id.camera_facing->{
-                    Log.d(TAG,"camera switch click")
+                R.id.camera_facing ->{
                     toggleCamera()
                     activity?.invalidateOptionsMenu()
                     true
