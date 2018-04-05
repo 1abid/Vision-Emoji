@@ -12,8 +12,10 @@ import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.util.Log
 import com.vutka.vision.emoji.*
+import com.vutka.vision.emoji.utils.CameraPersistance
 import com.vutka.vision.emoji.utils.checkPermission
 import com.vutka.vision.emoji.utils.isGrantedPermission
+import com.vutka.vision.emoji.utils.lazyFast
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -23,6 +25,10 @@ class MainActivity : AppCompatActivity() {
     private val requestCode = 0
     private val permissions = arrayOf(Manifest.permission.CAMERA)
     private var requiresPermission = false
+
+    private val cameraPersistence : CameraPersistance by lazyFast {
+        CameraPersistance(applicationContext)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,6 +94,9 @@ class MainActivity : AppCompatActivity() {
     private fun createFragment(fragmentClassName : String , initialize : (fragment : Fragment) -> Unit , addToBackStack: Boolean) :Fragment =
             Fragment.instantiate(this , fragmentClassName).also {
                 initialize(it)
+                (it as? CameraPersistance.persistanceInstance)?.apply {
+                    it.cameraState = this@MainActivity.cameraPersistence
+                }
                 supportFragmentManager.beginTransaction().apply {
                     if(addToBackStack)
                         addToBackStack(fragmentClassName)

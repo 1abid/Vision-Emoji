@@ -22,8 +22,13 @@ fun Context.isGrantedPermission(vararg permissions: String , function: () -> Uni
 }
 
 
+fun <T> lazyFast(operation: () -> T):Lazy<T> = lazy(LazyThreadSafetyMode.NONE){
+    operation()
+}
+
 fun ViewGroup.forEachChildren(function: (view : View) -> Unit) {
     for (i in 0 until childCount){
         function(getChildAt(i))
     }
+
 }

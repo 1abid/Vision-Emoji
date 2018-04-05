@@ -16,12 +16,15 @@ import com.google.android.gms.vision.face.FaceDetector
 import com.google.android.gms.vision.face.LargestFaceFocusingProcessor
 import com.vutka.vision.emoji.detection.FaceTracker
 import com.vutka.vision.emoji.R
+import com.vutka.vision.emoji.utils.CameraPersistance
 import kotlinx.android.synthetic.main.fragment_scanner.*
 
 /**
  * Created by abidhasanshaon on 11/3/18.
  */
-class ScannerFragment : Fragment() {
+class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
+
+    override var cameraState: CameraPersistance? = null
 
     private val RC_HANDLE_GSM = 9001
 
@@ -90,14 +93,18 @@ class ScannerFragment : Fragment() {
         }
 
     private fun toggleCamera() {
-        cameraSource?.also {
-            if(it.cameraFacing == CameraSource.CAMERA_FACING_BACK)
-                createCameraSource(CameraSource.CAMERA_FACING_FRONT)
-            else
-                createCameraSource(CameraSource.CAMERA_FACING_BACK)
+        cameraState?.apply {
+            cameraSource?.also {
+                cameraFacing = if(it.cameraFacing == CameraSource.CAMERA_FACING_BACK)
+                    CameraSource.CAMERA_FACING_FRONT
+                else
+                    CameraSource.CAMERA_FACING_BACK
 
-            startCameraSource()
+                createCameraSource(cameraFacing)
+                startCameraSource()
+            }
         }
+
 
     }
 
@@ -113,8 +120,11 @@ class ScannerFragment : Fragment() {
     @SuppressLint("MissingPermission")
     override fun onResume() {
         super.onResume()
-        createCameraSource(CameraSource.CAMERA_FACING_FRONT)
-        startCameraSource()
+        cameraState?.apply {
+            createCameraSource(cameraFacing)
+            startCameraSource()
+        }
+
     }
 
     override fun onPause() {
