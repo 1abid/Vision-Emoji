@@ -5,12 +5,15 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.res.ResourcesCompat
+import android.util.Log
 import android.view.*
 import com.airbnb.lottie.LottieAnimationView
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.Detector
+import com.google.android.gms.vision.MultiProcessor
+import com.google.android.gms.vision.Tracker
 import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
 import com.google.android.gms.vision.face.LargestFaceFocusingProcessor
@@ -44,7 +47,7 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
                         .setClassificationType(FaceDetector.NO_CLASSIFICATIONS)
                         .setLandmarkType(FaceDetector.ALL_LANDMARKS)
                         .build().apply {
-                            setProcessor(LargestFaceFocusingProcessor(this, FaceTracker()))
+                            setProcessor(MultiProcessor.Builder(GraphicFaceTrackerFactory()).build())
                         }
                 field
             }
@@ -149,9 +152,13 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
     private fun createCameraSource(cameraFacing: Int?) {
         stopCameraSource()
         detector = null
+
+        if(detector?.isOperational == false){
+            Log.w(TAG, "vision API is not yet available to detect face")
+        }
         cameraSource = CameraSource.Builder(context , detector)
-                .setRequestedPreviewSize(640,480)
-                .setRequestedFps(3f)
+                .setRequestedPreviewSize(1024,820)
+                .setRequestedFps(30.0f)
                 .setFacing(cameraFacing!!)
                 .build()
 
@@ -187,6 +194,11 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
                 else -> googleApiAvailability.getErrorDialog(activity, it, RC_HANDLE_GSM)
             }
         }
+    }
+
+    private class GraphicFaceTrackerFactory : MultiProcessor.Factory<Face>{
+        override fun create(face: Face?): Tracker<Face> = FaceTracker()
+
     }
 
 }
