@@ -48,7 +48,7 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
                     faceTracker = FaceTracker(emoji_overlay)
                 }
                 field = FaceDetector.Builder(context)
-                        .setClassificationType(FaceDetector.NO_CLASSIFICATIONS)
+                        .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                         .setLandmarkType(FaceDetector.ALL_LANDMARKS)
                         .build().apply {
                             setProcessor(MultiProcessor.Builder(GraphicFaceTrackerFactory(faceTracker)).build())
@@ -82,6 +82,7 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
         menu?.findItem(R.id.camera_facing)?.also {
             it.icon = ResourcesCompat.getDrawable(resources, getCameraFacingType(), context?.theme)
         }
+
         super.onPrepareOptionsMenu(menu)
     }
 
@@ -93,7 +94,15 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
                     toggleCamera()
                     activity?.invalidateOptionsMenu()
                     true
-                }else -> true
+                }
+
+                R.id.emoji_refresh -> {
+                    faceTracker?.enableEmoji = true
+                    activity?.invalidateOptionsMenu()
+                    true
+                }
+
+                else -> true
 
             }
 
@@ -162,7 +171,7 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
         }
         cameraSource = CameraSource.Builder(context , detector)
                 .setRequestedPreviewSize(1024,820)
-                .setRequestedFps(30.0f)
+                .setRequestedFps(3f)
                 .setFacing(cameraFacing!!)
                 .build()
 

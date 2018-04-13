@@ -7,4 +7,9 @@
         android:icon="@drawable/ic_camera_rear"
         android:title="@string/camera"
         app:showAsAction="always" />
+    <item
+        android:id="@+id/emoji_refresh"
+        android:icon="@android:drawable/ic_menu_revert"
+        android:title="@string/camera"
+        app:showAsAction="always" />
 </menu>
