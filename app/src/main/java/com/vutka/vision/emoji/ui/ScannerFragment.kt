@@ -16,6 +16,7 @@ import com.google.android.gms.vision.MultiProcessor
 import com.google.android.gms.vision.Tracker
 import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
+import com.google.android.gms.vision.face.LargestFaceFocusingProcessor
 import com.vutka.vision.emoji.detection.FaceTracker
 import com.vutka.vision.emoji.R
 import com.vutka.vision.emoji.utils.CameraPersistance
@@ -44,22 +45,21 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
                 field
             }
             else{
-                if(emoji_overlay != null){
+                if(emoji_overlay != null) {
                     faceTracker = FaceTracker(emoji_overlay)
+                    field = FaceDetector.Builder(context)
+                            .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
+                            .setLandmarkType(FaceDetector.ALL_LANDMARKS)
+                            .build().apply {
+                                setProcessor(MultiProcessor.Builder(GraphicFaceTrackerFactory(faceTracker)).build())
+                            }
                 }
-                field = FaceDetector.Builder(context)
-                        .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
-                        .setLandmarkType(FaceDetector.ALL_LANDMARKS)
-                        .build().apply {
-                            setProcessor(MultiProcessor.Builder(GraphicFaceTrackerFactory(faceTracker)).build())
-                        }
                 field
             }
         set(value){
             field?.apply {
                 release()
             }
-
             field = value
         }
 
@@ -182,8 +182,17 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
         checkGooglePlayService {
             createCameraSource(cameraSource?.cameraFacing)
             cameraSource?.also {
-                preview.start(it)
+                preview.start(it,emoji_overlay)
+                detectorCheck()
             }
+        }
+    }
+
+    private fun detectorCheck() {
+        if(detector?.isOperational == true){
+            Log.d(TAG, "detector is operational")
+        }else{
+            Log.d(TAG, "detector is not functioning")
         }
     }
 
@@ -195,6 +204,7 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
             preview?.releaseCameraSource()
             detector?.release()
             cameraSource = null
+            faceTracker = null
             detector = null
         }
     }

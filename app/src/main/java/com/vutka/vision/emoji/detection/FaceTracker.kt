@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.Tracker
 import com.google.android.gms.vision.face.Face
+import com.vutka.vision.emoji.R
 
 /**
  * Created by abidhasanshaon on 12/3/18.
@@ -21,23 +22,27 @@ class FaceTracker(private val emojiOverlay: EmojiOverlay,
     override fun onNewItem(faceId: Int, face: Face?) {
         super.onNewItem(faceId, face)
         Log.i(TAG, "face found ${face?.position}")
-        //TODO set face id for each face found
+        emojiGraphic.faceId = face?.id
     }
 
     override fun onUpdate(detection: Detector.Detections<Face>, face: Face?) {
         if (detection.detectorIsOperational()) {
-            Log.i(TAG , "enable emoji $enableEmoji")
             if (enableEmoji)
                 getAppropriateEmoji(face)
+
+            emojiOverlay.add(emojiGraphic)
+            emojiGraphic.updateFace(face)
         }
     }
 
     override fun onMissing(detection: Detector.Detections<Face>) {
-
+        emojiOverlay.remove(emojiGraphic)
+        enableEmoji = true
     }
 
     override fun onDone() {
-
+        emojiOverlay.remove(emojiGraphic)
+        enableEmoji = true
     }
 
     private fun getAppropriateEmoji(face: Face?) {
@@ -46,6 +51,7 @@ class FaceTracker(private val emojiOverlay: EmojiOverlay,
         face?.also {
             if (it.isSmilingProbability >= 0.9 && it.isLeftEyeOpenProbability >= 0.9 && it.isRightEyeOpenProbability >= 0.9) {
                 Log.i(TAG, "this bro is straight happy")
+                emojiGraphic.drawableResId = R.drawable.ic_happy_normal
                 enableEmoji = false
             }
         }

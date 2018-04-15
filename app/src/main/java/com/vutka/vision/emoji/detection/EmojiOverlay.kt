@@ -3,6 +3,7 @@ package com.vutka.vision.emoji.detection
 import android.content.Context
 import android.graphics.Canvas
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import com.google.android.gms.vision.CameraSource
 
@@ -13,11 +14,13 @@ class EmojiOverlay(context: Context, attributeSet: AttributeSet): View(context, 
     private var mWidthScaleFactor: Float = 1.0f
     private var mPreviewHeight: Int = 0
     private var mHeightScaleFactor: Float = 1.0f
-    private var mCameraFacing = CameraSource.CAMERA_FACING_BACK
+    private var mCameraFacing = CameraSource.CAMERA_FACING_FRONT
     private val mGraphic = HashSet<Graphic>()
 
 
     abstract class Graphic(private val mEmojiOverlay: EmojiOverlay){
+
+        abstract var drawableResId :Int
 
         abstract fun draw(canvas: Canvas)
 
@@ -25,34 +28,49 @@ class EmojiOverlay(context: Context, attributeSet: AttributeSet): View(context, 
 
         fun scaleY(vertical: Float) = vertical * mEmojiOverlay.mHeightScaleFactor
 
-        fun TransletX(x: Float) :Float = if (mEmojiOverlay.mCameraFacing== CameraSource.CAMERA_FACING_FRONT){
+        fun translateX(x: Float) :Float = if (mEmojiOverlay.mCameraFacing == CameraSource.CAMERA_FACING_FRONT){
             mEmojiOverlay.width - scaleX(x)
         }else{
             scaleX(x)
         }
 
-        fun TransletY(y: Float) :Float = scaleY(y)
+        fun translateY(y: Float) :Float = scaleY(y)
+
+        fun rotate(angle : Float):Float =
+            if(mEmojiOverlay.mCameraFacing == CameraSource.CAMERA_FACING_FRONT){
+                angle
+            }else{
+                - angle
+            }
+
 
         fun postInvalidate() = mEmojiOverlay.postInvalidate()
 
     }
 
 
-    public fun clear(){
+    fun clear(){
         synchronized(mLock){
             mGraphic.clear()
         }
         postInvalidate()
     }
 
-    public fun add(emoji: Graphic){
+    fun add(emoji: Graphic){
         synchronized(mLock){
             mGraphic.add(emoji)
         }
         postInvalidate()
     }
 
-    public fun setCameraInfo(previewWidth:Int, previewHeight:Int, camreFacing:Int){
+    fun remove(emoji: Graphic){
+        synchronized(mLock){
+            mGraphic.remove(emoji)
+        }
+        postInvalidate()
+    }
+
+    fun setCameraInfo(previewWidth:Int, previewHeight:Int, camreFacing:Int){
         synchronized(mLock){
             mPreviewWidth = previewWidth
             mPreviewHeight = previewHeight

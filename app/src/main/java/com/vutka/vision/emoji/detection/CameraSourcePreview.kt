@@ -32,6 +32,7 @@ class CameraSourcePreview(context: Context, attributeSet: AttributeSet) : ViewGr
             startPreviewIfReady()
         }
 
+    private var overlay:EmojiOverlay? = null
 
     init {
         Log.i(logTAG, " class initialization ")
@@ -43,19 +44,23 @@ class CameraSourcePreview(context: Context, attributeSet: AttributeSet) : ViewGr
     }
 
     @Throws(IOException::class)
-    fun start(cameraSource: CameraSource) {
+    fun start(cameraSource: CameraSource, newOverlay: EmojiOverlay) {
         this.cameraSource = cameraSource
+        overlay = newOverlay
     }
 
     @Throws(IOException::class)
     @SuppressLint("MissingPermission")
     private fun startPreviewIfReady() {
         if (surfaceAvailable && surfaceRequested){
-            cameraSource?.let {
-                Log.i(logTAG, "CameraSource preview  width ${it?.previewSize?.width} ${it?.previewSize?.width}")
-                it.start(surfaceView.holder)
+            cameraSource?.apply {
+                Log.i(logTAG, "CameraSource preview  width ${previewSize?.width} ${previewSize?.width}")
+                start(surfaceView.holder)
+                size { width, height ->
+                    overlay?.setCameraInfo(width, height, cameraFacing)
+                }
             }
-
+            overlay?.clear()
             surfaceRequested = false
         }
 
@@ -128,6 +133,16 @@ class CameraSourcePreview(context: Context, attributeSet: AttributeSet) : ViewGr
             it.layout(-childXOffset, -childYOffset, childViewWidth - childXOffset, childViewHeight - childYOffset)
         }
     }
+
+    private fun CameraSource.size(function:(width: Int, height: Int)->Unit)=
+        previewSize?.also {size->
+            if (isPortrait){
+                function(Math.min(size.width, size.height), Math.max(size.width, size.height))
+            }else{
+                function(Math.max(size.width, size.height), Math.min(size.width, size.height))
+            }
+        }
+
 
 
     private val isPortrait: Boolean = context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
