@@ -23,12 +23,17 @@ class EmojiGraphic(private val overlay: EmojiOverlay,
     override var drawableResId: Int = 0
         set(value) {
             field = value
-            Log.d("emojiGraphic", "drawable is about to be assigned with $value")
             drawable = ResourcesCompat.getDrawable(resources, value, overlay.context.theme)
         }
 
     fun updateFace(newFace: Face?) {
         face = newFace
+        postInvalidate()
+    }
+
+    fun removeFace(){
+        face = null
+        drawable = null
         postInvalidate()
     }
 
@@ -46,10 +51,10 @@ class EmojiGraphic(private val overlay: EmojiOverlay,
 
     private fun Drawable.draw(canvas: Canvas, face: Face) {
         half(face.width, face.height) { halfWidth, halfHeight ->
-            bounds.left = (translateX((face.position.x - halfWidth) - scaleX(halfWidth))).toInt()
-            bounds.top = (translateY(face.position.y + halfHeight) - scaleY(halfHeight)).toInt() - face.height.toInt()
-            bounds.right = (translateX((face.position.x + halfWidth) + scaleX(halfWidth))).toInt()
-            bounds.bottom = (translateY(face.position.y + halfHeight) + scaleY(halfHeight)).toInt() + halfHeight.toInt()
+            bounds.left = (translateX(face.position.x + halfWidth) - scaleX(halfWidth)).toInt()
+            bounds.right = (translateX(face.position.x + halfWidth) + scaleX(halfWidth)).toInt()
+            bounds.top = (translateY(face.position.y + halfHeight) - scaleY(halfHeight*-0.5F)).toInt() - face.height.toInt()
+            bounds.bottom = (translateY(face.position.y + halfHeight) + scaleY(halfHeight*0.3F)).toInt() + halfHeight.toInt()
         }
 
         canvas.rotate(rotate(face.eulerZ), bounds.exactCenterX(), bounds.exactCenterY())

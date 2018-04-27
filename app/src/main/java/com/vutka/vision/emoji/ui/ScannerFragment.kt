@@ -97,7 +97,7 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
                 }
 
                 R.id.emoji_refresh -> {
-                    faceTracker?.enableEmoji = true
+                    faceTracker?.removeGraphic()
                     activity?.invalidateOptionsMenu()
                     true
                 }

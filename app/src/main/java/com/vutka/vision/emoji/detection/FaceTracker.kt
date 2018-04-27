@@ -27,7 +27,7 @@ class FaceTracker(private val emojiOverlay: EmojiOverlay,
 
     override fun onUpdate(detection: Detector.Detections<Face>, face: Face?) {
         if (detection.detectorIsOperational()) {
-            if (enableEmoji)
+            if(enableEmoji)
                 getAppropriateEmoji(face)
 
             emojiOverlay.add(emojiGraphic)
@@ -45,11 +45,19 @@ class FaceTracker(private val emojiOverlay: EmojiOverlay,
         enableEmoji = true
     }
 
+    fun removeGraphic(){
+        emojiOverlay.remove(emojiGraphic)
+        emojiGraphic.removeFace()
+        Log.d(TAG,"graphic removed")
+        enableEmoji = true
+    }
+
     private fun getAppropriateEmoji(face: Face?) {
         Log.d(TAG, "face data ${face?.id} smiling probability ${face?.isSmilingProbability} " +
                 "left eye open probability ${face?.isLeftEyeOpenProbability} right eye open probability ${face?.isRightEyeOpenProbability}")
+
         face?.also {
-            if (it.isSmilingProbability >= 0.9 && it.isLeftEyeOpenProbability >= 0.9 && it.isRightEyeOpenProbability >= 0.9) {
+            if (it.isSmilingProbability >= 0.8 && it.isLeftEyeOpenProbability >= 0.8 && it.isRightEyeOpenProbability >= 0.8) {
                 Log.i(TAG, "this bro is straight happy")
                 emojiGraphic.drawableResId = R.drawable.ic_happy_normal
                 enableEmoji = false
