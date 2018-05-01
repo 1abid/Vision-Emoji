@@ -22,8 +22,8 @@ class EmojiGraphic(private val overlay: EmojiOverlay,
     @DrawableRes
     override var drawableResId: Int = 0
         set(value) {
-            field = value
-            drawable = ResourcesCompat.getDrawable(resources, value, overlay.context.theme)
+                field = value
+                drawable = ResourcesCompat.getDrawable(resources, value, overlay.context.theme)
         }
 
     fun updateFace(newFace: Face?) {

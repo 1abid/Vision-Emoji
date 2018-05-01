@@ -5,6 +5,9 @@ import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.Tracker
 import com.google.android.gms.vision.face.Face
 import com.vutka.vision.emoji.R
+import java.util.*
+import java.util.logging.Handler
+import kotlin.concurrent.schedule
 
 /**
  * Created by abidhasanshaon on 12/3/18.
@@ -18,6 +21,7 @@ class FaceTracker(private val emojiOverlay: EmojiOverlay,
 
     var enableEmoji: Boolean = true
 
+    val timer = Timer("enable_detection" , true)
 
     override fun onNewItem(faceId: Int, face: Face?) {
         super.onNewItem(faceId, face)
@@ -49,7 +53,11 @@ class FaceTracker(private val emojiOverlay: EmojiOverlay,
         emojiOverlay.remove(emojiGraphic)
         emojiGraphic.removeFace()
         Log.d(TAG,"graphic removed")
-        enableEmoji = true
+
+        timer.schedule(2000){
+            enableEmoji = true
+        }
+
     }
 
     private fun getAppropriateEmoji(face: Face?) {
@@ -60,6 +68,12 @@ class FaceTracker(private val emojiOverlay: EmojiOverlay,
             if (it.isSmilingProbability >= 0.8 && it.isLeftEyeOpenProbability >= 0.8 && it.isRightEyeOpenProbability >= 0.8) {
                 Log.i(TAG, "this bro is straight happy")
                 emojiGraphic.drawableResId = R.drawable.ic_happy_normal
+                enableEmoji = false
+            }
+
+            if (it.isSmilingProbability <= 0.1 && it.isLeftEyeOpenProbability >= 0.8 && it.isRightEyeOpenProbability >= 0.8) {
+                Log.i(TAG, "this bro is straight SAD")
+                emojiGraphic.drawableResId = R.drawable.ic_sad
                 enableEmoji = false
             }
         }
