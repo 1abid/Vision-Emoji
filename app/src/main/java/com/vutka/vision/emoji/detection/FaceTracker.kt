@@ -66,14 +66,38 @@ class FaceTracker(private val emojiOverlay: EmojiOverlay,
 
         face?.also {
             if (it.isSmilingProbability >= 0.8 && it.isLeftEyeOpenProbability >= 0.8 && it.isRightEyeOpenProbability >= 0.8) {
-                Log.i(TAG, "this bro is straight happy")
+                Log.i(TAG, "happy")
                 emojiGraphic.drawableResId = R.drawable.ic_happy_normal
                 enableEmoji = false
             }
 
             if (it.isSmilingProbability <= 0.1 && it.isLeftEyeOpenProbability >= 0.8 && it.isRightEyeOpenProbability >= 0.8) {
-                Log.i(TAG, "this bro is straight SAD")
+                Log.i(TAG, "SAD")
                 emojiGraphic.drawableResId = R.drawable.ic_sad
+                enableEmoji = false
+            }
+
+            if (it.isSmilingProbability == -1.0F && it.isLeftEyeOpenProbability >= 0.8 && it.isRightEyeOpenProbability >= 0.8) {
+                Log.i(TAG, "shocked")
+                emojiGraphic.drawableResId = R.drawable.ic_shocked
+                enableEmoji = false
+            }
+
+            if (it.isLeftEyeOpenProbability >= 0.7 && it.isRightEyeOpenProbability <= 0.4) {
+                Log.i(TAG, "right wink")
+                emojiGraphic.drawableResId = R.drawable.ic_wink_right
+                enableEmoji = false
+            }
+
+            if (it.isSmilingProbability <= 0.5 && it.isLeftEyeOpenProbability <= 0.4 && it.isRightEyeOpenProbability >= 0.7) {
+                Log.i(TAG, "left wink")
+                emojiGraphic.drawableResId = R.drawable.ic_wink_left
+                enableEmoji = false
+            }
+
+            if (it.isLeftEyeOpenProbability <= 0.2f && it.isRightEyeOpenProbability <= 0.2f) {
+                Log.i(TAG, "dead")
+                emojiGraphic.drawableResId = R.drawable.ic_dead
                 enableEmoji = false
             }
         }
