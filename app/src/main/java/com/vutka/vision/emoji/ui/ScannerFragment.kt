@@ -19,6 +19,7 @@ import com.google.android.gms.vision.face.FaceDetector
 import com.google.android.gms.vision.face.LargestFaceFocusingProcessor
 import com.vutka.vision.emoji.detection.FaceTracker
 import com.vutka.vision.emoji.R
+import com.vutka.vision.emoji.R.id.emoji_overlay
 import com.vutka.vision.emoji.utils.CameraPersistance
 import kotlinx.android.synthetic.main.fragment_scanner.*
 
@@ -86,6 +87,7 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
         super.onPrepareOptionsMenu(menu)
     }
 
+    @SuppressLint("NewApi")
     override fun onOptionsItemSelected(item: MenuItem): Boolean = item.run {
 
             when(itemId){
@@ -145,7 +147,7 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
 
     override fun onPause() {
         super.onPause()
-        preview.stop()
+        stopCameraSource()
     }
 
     override fun onDestroy() {
