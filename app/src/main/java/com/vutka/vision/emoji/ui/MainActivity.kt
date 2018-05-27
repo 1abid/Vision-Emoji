@@ -12,6 +12,7 @@ import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.util.Log
 import com.vutka.vision.emoji.*
+import com.vutka.vision.emoji.R.id.toolbar
 import com.vutka.vision.emoji.utils.CameraPersistance
 import com.vutka.vision.emoji.utils.checkPermission
 import com.vutka.vision.emoji.utils.isGrantedPermission
@@ -85,10 +86,13 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun FragmentManager.createOrReturnFragment(fragmentClassName: String , addToBackStack:Boolean = false , initialize: (fragment: Fragment) -> Unit ={}):Fragment
-            = findFragmentByTag(fragmentClassName) ?: createFragment(fragmentClassName , initialize , addToBackStack)
-
-
+    private fun FragmentManager.createOrReturnFragment(fragmentClassName: String , addToBackStack:Boolean = false , initialize: (fragment: Fragment) -> Unit ={}):Fragment {
+        return if (fragmentClassName == ScannerFragment::class.java.canonicalName) {
+            createFragment(fragmentClassName, initialize, addToBackStack)
+        }else{
+            findFragmentByTag(fragmentClassName)
+        }
+    }
 
 
     private fun createFragment(fragmentClassName : String , initialize : (fragment : Fragment) -> Unit , addToBackStack: Boolean) :Fragment =

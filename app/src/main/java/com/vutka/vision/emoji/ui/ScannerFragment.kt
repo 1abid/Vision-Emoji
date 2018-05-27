@@ -13,13 +13,10 @@ import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.MultiProcessor
-import com.google.android.gms.vision.Tracker
 import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
-import com.google.android.gms.vision.face.LargestFaceFocusingProcessor
 import com.vutka.vision.emoji.detection.FaceTracker
 import com.vutka.vision.emoji.R
-import com.vutka.vision.emoji.R.id.emoji_overlay
 import com.vutka.vision.emoji.utils.CameraPersistance
 import kotlinx.android.synthetic.main.fragment_scanner.*
 
@@ -150,12 +147,6 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
         stopCameraSource()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        cameraSource?.release()
-    }
-
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -166,7 +157,7 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
 
     private fun createCameraSource(cameraFacing: Int?) {
         stopCameraSource()
-        detector = null
+        //detector = null
 
         if(detector?.isOperational == false){
             Log.w(TAG, "vision API is not yet available to detect face")
@@ -176,8 +167,6 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
                 .setRequestedFps(3f)
                 .setFacing(cameraFacing!!)
                 .build()
-
-
     }
 
     private fun startCameraSource() {
