@@ -5,8 +5,29 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="false"
-    android:keepScreenOn="true">
+    android:keepScreenOn="true"
+    android:id="@+id/scanner_layout">
 
+
+    <TextView
+        android:id="@+id/not_operational"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="56dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:background="@color/colorChrome"
+        android:paddingBottom="24dp"
+        android:paddingTop="24dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:visibility="gone"
+        android:text="@string/not_operational"
+        android:textColor="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <com.vutka.vision.emoji.detection.CameraSourcePreview
         android:id="@+id/preview"
@@ -26,14 +47,15 @@
 
 
     <RelativeLayout
+        android:id="@+id/relativeLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="48dp"
+        android:background="@color/colorChrome"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        android:background="@color/colorChrome">
+        app:layout_constraintStart_toStartOf="parent">
 
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/capture_photo"
@@ -41,9 +63,10 @@
             android:layout_height="100dp"
             android:layout_centerInParent="true"
             android:padding="10dp"
-            app:lottie_rawRes="@raw/camera_button"
             app:lottie_autoPlay="false"
-            app:lottie_loop="false"/>
+            app:lottie_loop="false"
+            app:lottie_rawRes="@raw/camera_button" />
+
     </RelativeLayout>
 
 </android.support.constraint.ConstraintLayout>

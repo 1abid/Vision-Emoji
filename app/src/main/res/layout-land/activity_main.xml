@@ -31,5 +31,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:paddingTop="24dp"
+        android:paddingStart="48dp"
+        android:paddingEnd="48dp"
         app:titleTextColor="@android:color/white"/>
 </android.support.constraint.ConstraintLayout>

@@ -2,9 +2,11 @@ package com.vutka.vision.emoji.ui
 
 
 import android.annotation.SuppressLint
+import android.media.MediaActionSound
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.res.ResourcesCompat
+import android.transition.TransitionManager
 import android.util.Log
 import android.view.*
 import com.airbnb.lottie.LottieAnimationView
@@ -17,13 +19,16 @@ import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
 import com.vutka.vision.emoji.detection.FaceTracker
 import com.vutka.vision.emoji.R
+import com.vutka.vision.emoji.R.layout.fragment_scanner
+import com.vutka.vision.emoji.detection.BitmapGeneration
 import com.vutka.vision.emoji.utils.CameraPersistance
 import kotlinx.android.synthetic.main.fragment_scanner.*
+import java.util.concurrent.TimeUnit
 
 /**
  * Created by abidhasanshaon on 11/3/18.
  */
-class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
+class ScannerFragment : Fragment(), CameraPersistance.persistanceInstance {
 
     override var cameraState: CameraPersistance? = null
 
@@ -37,13 +42,15 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
 
     private var faceTracker: FaceTracker? = null
 
+    private var toggleOperationalState = false
+    private var logOperationalDetector = false
+
     private var detector: Detector<Face>? = null
         get() =
-            if(field!=null) {
+            if (field != null) {
                 field
-            }
-            else{
-                if(emoji_overlay != null) {
+            } else {
+                if (emoji_overlay != null) {
                     faceTracker = FaceTracker(emoji_overlay)
                     field = FaceDetector.Builder(context)
                             .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
@@ -54,14 +61,20 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
                 }
                 field
             }
-        set(value){
+        set(value) {
             field?.apply {
                 release()
             }
             field = value
         }
 
-
+    private val orientationFactor: Float
+        get() =
+            if (cameraSource?.cameraFacing == CameraSource.CAMERA_FACING_FRONT) {
+                -1f
+            } else {
+                1f
+            }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,30 +100,30 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
     @SuppressLint("NewApi")
     override fun onOptionsItemSelected(item: MenuItem): Boolean = item.run {
 
-            when(itemId){
+        when (itemId) {
 
-                R.id.camera_facing ->{
-                    toggleCamera()
-                    activity?.invalidateOptionsMenu()
-                    true
-                }
-
-                R.id.emoji_refresh -> {
-                    faceTracker?.removeGraphic()
-                    activity?.invalidateOptionsMenu()
-                    true
-                }
-
-                else -> true
-
+            R.id.camera_facing -> {
+                toggleCamera()
+                activity?.invalidateOptionsMenu()
+                true
             }
 
+            R.id.emoji_refresh -> {
+                faceTracker?.removeGraphic()
+                activity?.invalidateOptionsMenu()
+                true
+            }
+
+            else -> true
+
         }
+
+    }
 
     private fun toggleCamera() {
         cameraState?.apply {
             cameraSource?.also {
-                cameraFacing = if(it.cameraFacing == CameraSource.CAMERA_FACING_BACK)
+                cameraFacing = if (it.cameraFacing == CameraSource.CAMERA_FACING_BACK)
                     CameraSource.CAMERA_FACING_FRONT
                 else
                     CameraSource.CAMERA_FACING_BACK
@@ -125,11 +138,10 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
 
 
     private fun getCameraFacingType(): Int =
-        if(cameraSource?.cameraFacing == CameraSource.CAMERA_FACING_FRONT)
-            R.drawable.ic_camera_rear
-        else
-            R.drawable.ic_camera_front
-
+            if (cameraSource?.cameraFacing == CameraSource.CAMERA_FACING_FRONT)
+                R.drawable.ic_camera_rear
+            else
+                R.drawable.ic_camera_front
 
 
     @SuppressLint("MissingPermission")
@@ -150,20 +162,41 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        capture_photo?.setOnClickListener{
-            (it as LottieAnimationView).playAnimation()
+        capture_photo?.setOnClickListener {
+            it.takePhoto()
         }
     }
+
+    private fun View.takePhoto() {
+        (this as LottieAnimationView).playAnimation()
+        cameraSource?.takePicture(shutterCallback, pictureCallback)
+    }
+
+    private val pictureCallback = CameraSource.PictureCallback { bytes ->
+        context?.also {
+            BitmapGeneration(it, faceTracker?.drawableID, preview.width, preview.height, orientationFactor)?.apply {
+
+            }
+        }
+    }
+
+    private val shutterCallback = CameraSource.ShutterCallback {
+        MediaActionSound().apply {
+            play(MediaActionSound.SHUTTER_CLICK)
+            release()
+        }
+    }
+
 
     private fun createCameraSource(cameraFacing: Int?) {
         stopCameraSource()
         //detector = null
 
-        if(detector?.isOperational == false){
+        if (detector?.isOperational == false) {
             Log.w(TAG, "vision API is not yet available to detect face")
         }
-        cameraSource = CameraSource.Builder(context , detector)
-                .setRequestedPreviewSize(1024,820)
+        cameraSource = CameraSource.Builder(context, detector)
+                .setRequestedPreviewSize(1024, 820)
                 .setRequestedFps(3f)
                 .setFacing(cameraFacing!!)
                 .build()
@@ -173,18 +206,36 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
         checkGooglePlayService {
             createCameraSource(cameraSource?.cameraFacing)
             cameraSource?.also {
-                preview.start(it,emoji_overlay)
+                preview.start(it, emoji_overlay)
                 detectorCheck()
             }
         }
     }
 
     private fun detectorCheck() {
-        if(detector?.isOperational == true){
-            Log.d(TAG, "detector is operational")
-        }else{
-            Log.d(TAG, "detector is not functioning")
+        if (detector?.isOperational == true) {
+            logOperationalDetector = false
+            if (isResumed) {
+                TransitionManager.beginDelayedTransition(scanner_layout)
+                not_operational.visibility = View.GONE
+                capture_photo.visibility = View.VISIBLE
+                toggleOperationalState = true
+                activity?.invalidateOptionsMenu()
+            }
+        } else {
+            logOperationalDetector = true
+            if (isResumed) {
+                TransitionManager.beginDelayedTransition(scanner_layout)
+                not_operational.visibility = View.VISIBLE
+                capture_photo.visibility = View.GONE
+                toggleOperationalState = true
+                activity?.invalidateOptionsMenu()
+            }
+
+            preview?.postDelayed(::detectorCheck, TimeUnit.SECONDS.toMillis(1))
         }
+
+
     }
 
     private fun stopCameraSource() {
@@ -210,9 +261,11 @@ class ScannerFragment : Fragment(),CameraPersistance.persistanceInstance {
         }
     }
 
-    private class GraphicFaceTrackerFactory(private val faceTracker : FaceTracker?) : MultiProcessor.Factory<Face>{
+    private class GraphicFaceTrackerFactory(private val faceTracker: FaceTracker?) : MultiProcessor.Factory<Face> {
         override fun create(face: Face?): FaceTracker? = faceTracker
 
     }
 
 }
+
+

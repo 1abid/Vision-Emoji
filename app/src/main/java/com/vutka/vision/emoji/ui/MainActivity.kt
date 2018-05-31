@@ -87,6 +87,7 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun FragmentManager.createOrReturnFragment(fragmentClassName: String , addToBackStack:Boolean = false , initialize: (fragment: Fragment) -> Unit ={}):Fragment {
+
         return if (fragmentClassName == ScannerFragment::class.java.canonicalName) {
             createFragment(fragmentClassName, initialize, addToBackStack)
         }else{
