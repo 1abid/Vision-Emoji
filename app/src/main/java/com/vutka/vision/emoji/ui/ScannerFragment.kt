@@ -23,6 +23,8 @@ import com.vutka.vision.emoji.R.layout.fragment_scanner
 import com.vutka.vision.emoji.detection.BitmapGeneration
 import com.vutka.vision.emoji.utils.CameraPersistance
 import kotlinx.android.synthetic.main.fragment_scanner.*
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.async
 import java.util.concurrent.TimeUnit
 
 /**
@@ -175,7 +177,9 @@ class ScannerFragment : Fragment(), CameraPersistance.persistanceInstance {
     private val pictureCallback = CameraSource.PictureCallback { bytes ->
         context?.also {
             BitmapGeneration(it, faceTracker?.drawableID, preview.width, preview.height, orientationFactor)?.apply {
-
+                async(CommonPool){
+                    convert(bytes)
+                }
             }
         }
     }
