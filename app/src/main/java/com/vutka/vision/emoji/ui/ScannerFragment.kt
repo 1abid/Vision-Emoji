@@ -2,6 +2,7 @@ package com.vutka.vision.emoji.ui
 
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.media.MediaActionSound
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -19,13 +20,13 @@ import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
 import com.vutka.vision.emoji.detection.FaceTracker
 import com.vutka.vision.emoji.R
-import com.vutka.vision.emoji.R.layout.fragment_scanner
+import com.vutka.vision.emoji.R.id.capture_photo
 import com.vutka.vision.emoji.detection.BitmapGeneration
 import com.vutka.vision.emoji.utils.CameraPersistance
-import kotlinx.android.synthetic.main.fragment_scanner.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import java.util.concurrent.TimeUnit
+import kotlinx.android.synthetic.main.fragment_scanner.*
 
 /**
  * Created by abidhasanshaon on 11/3/18.
@@ -178,8 +179,10 @@ class ScannerFragment : Fragment(), CameraPersistance.persistanceInstance {
         context?.also {
             BitmapGeneration(it, faceTracker?.drawableID, preview.width, preview.height, orientationFactor)?.apply {
                 info
-                async(CommonPool){
+                async(CommonPool) {
                     convert(bytes)
+                    activity?.setFileName("test file")
+
                 }
             }
         }
@@ -269,6 +272,16 @@ class ScannerFragment : Fragment(), CameraPersistance.persistanceInstance {
     private class GraphicFaceTrackerFactory(private val faceTracker: FaceTracker?) : MultiProcessor.Factory<Face> {
         override fun create(face: Face?): FaceTracker? = faceTracker
 
+    }
+
+    private fun Activity?.setFileName(path: String) {
+        if (this is EmojiFileConsumer) {
+            setEmojiFileName(path)
+        }
+    }
+
+    interface EmojiFileConsumer {
+        fun setEmojiFileName(path: String)
     }
 
 }

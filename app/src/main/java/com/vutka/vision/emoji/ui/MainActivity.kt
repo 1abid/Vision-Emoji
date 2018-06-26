@@ -19,12 +19,13 @@ import com.vutka.vision.emoji.utils.isGrantedPermission
 import com.vutka.vision.emoji.utils.lazyFast
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ScannerFragment.EmojiFileConsumer {
+
 
     private val TAG = MainActivity::class.java.simpleName
 
     private val requestCode = 0
-    private val permissions = arrayOf(Manifest.permission.CAMERA)
+    private val permissions = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     private var requiresPermission = false
 
     private val cameraPersistence : CameraPersistance by lazyFast {
@@ -67,9 +68,9 @@ class MainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        if(grantResults.any { PackageManager.PERMISSION_GRANTED == it }){
+        if(grantResults.all { PackageManager.PERMISSION_GRANTED == it }){
             requiresPermission = false
-            Log.i(TAG , "camera permission granted ")
+            Log.i(TAG , "all permission granted ")
         }else {
             supportFragmentManager.createOrReturnFragment(MissingPermissionFragment::class.java.canonicalName)?.also {
                 (it as MissingPermissionFragment).openSettings = goToSettings()
@@ -86,29 +87,48 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun FragmentManager.createOrReturnFragment(fragmentClassName: String , addToBackStack:Boolean = false , initialize: (fragment: Fragment) -> Unit ={}):Fragment {
+    private fun FragmentManager.createOrReturnFragment(fragmentClassName: String , addToBackStack:Boolean = false , arguments:String? = null, initialize: (fragment: Fragment) -> Unit ={}):Fragment {
 
-        return if (fragmentClassName == ScannerFragment::class.java.canonicalName) {
-            createFragment(fragmentClassName, initialize, addToBackStack)
-        }else{
-            findFragmentByTag(fragmentClassName)
+        return when (fragmentClassName) {
+            ScannerFragment::class.java.canonicalName -> createFragment(fragmentClassName, initialize, addToBackStack)
+            PreviewFragment::class.java.canonicalName -> createFragment(fragmentClassName, initialize, addToBackStack, arguments)
+            MissingPermissionFragment::class.java.canonicalName -> createFragment(fragmentClassName, initialize, addToBackStack)
+            else -> findFragmentByTag(fragmentClassName)
         }
     }
 
 
-    private fun createFragment(fragmentClassName : String , initialize : (fragment : Fragment) -> Unit , addToBackStack: Boolean) :Fragment =
-            Fragment.instantiate(this , fragmentClassName).also {
+    private fun createFragment(fragmentClassName : String , initialize : (fragment : Fragment) -> Unit , addToBackStack: Boolean , arguments:String? = null) :Fragment {
+
+        if (arguments != null) {
+            return PreviewFragment.newInstance(arguments).also {
+                supportFragmentManager.beginTransaction().apply {
+                    if (addToBackStack)
+                        addToBackStack(fragmentClassName)
+
+                    replace(R.id.container, it, fragmentClassName)
+
+                }.commit()
+            }
+
+        }else{
+            return Fragment.instantiate(this, fragmentClassName).also {
                 initialize(it)
                 (it as? CameraPersistance.persistanceInstance)?.apply {
                     it.cameraState = this@MainActivity.cameraPersistence
                 }
                 supportFragmentManager.beginTransaction().apply {
-                    if(addToBackStack)
+                    if (addToBackStack)
                         addToBackStack(fragmentClassName)
 
-                    replace(R.id.container, it , fragmentClassName)
+                    replace(R.id.container, it, fragmentClassName)
 
                 }.commit()
             }
+        }
+    }
 
+    override fun setEmojiFileName(path: String) {
+        supportFragmentManager.createOrReturnFragment(PreviewFragment::class.java.canonicalName, true , path)
+    }
 }

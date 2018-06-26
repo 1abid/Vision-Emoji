@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Matrix
+import android.os.Environment
 import android.support.annotation.DrawableRes
 import android.util.Log
 import android.util.SparseArray
@@ -37,42 +38,13 @@ class BitmapGeneration(
 
     suspend fun convert(bytes: ByteArray) = async(CommonPool) {
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                .rotateIfNecessary().let { newBitmap->
-                    newBitmap.detectFace()?.let{
+                .rotateIfNecessary().let { newBitmap ->
 
-                    }
                 }
-    }
+    }.await()
 
 
-    private fun Bitmap.detectFace(): Face? =
-        createFaceDetector().run {
-            detect(Frame.Builder().setBitmap(scaleBitmap()).build())?.first().apply {
-                release()
-            }
-        }
-
-
-    private fun createFaceDetector() :FaceDetector =
-            FaceDetector.Builder(context)
-                    .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
-                    .setLandmarkType(FaceDetector.ALL_LANDMARKS).build()
-
-    private fun Bitmap.scaleBitmap() :Bitmap{
-        scaleFactor = Math.min(1080f / Math.max(width, height).toFloat(), 1f)
-        return if (scaleFactor < 1f) {
-            Bitmap.createBitmap((width * scaleFactor).toInt(), (height * scaleFactor).toInt(), config).also {
-                Canvas(it).apply {
-                    scale(scaleFactor, scaleFactor)
-                    drawBitmap(this@scaleBitmap, 0f, 0f, null)
-                }
-            }
-        } else {
-            this
-        }
-    }
-
-    private fun Bitmap.rotateIfNecessary() : Bitmap = if (shouldRotate(this)) {
+    private fun Bitmap.rotateIfNecessary(): Bitmap = if (shouldRotate(this)) {
         rotateBitmap()
     } else {
         this
@@ -86,10 +58,10 @@ class BitmapGeneration(
         Canvas(this).apply {
             rotate(90f * orientationFactor)
             matrix = Matrix().apply {
-                if(orientationFactor > 0f)
+                if (orientationFactor > 0f)
                     postTranslate(0f, -this@rotateBitmap.height.toFloat())
                 else
-                    postTranslate(-this@rotateBitmap.width.toFloat() , 0f)
+                    postTranslate(-this@rotateBitmap.width.toFloat(), 0f)
             }.also {
                 drawBitmap(this@rotateBitmap, it, null)
             }
@@ -99,6 +71,11 @@ class BitmapGeneration(
 
     private fun <T> SparseArray<T>.first(): T? =
             takeIf { it.size() > 0 }?.get(keyAt(0))
+
+    private fun isExternalStorageWritable(): Boolean = Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
+
+    private fun isExternalStorageReadable(): Boolean =
+            Environment.getExternalStorageState() in setOf(Environment.MEDIA_MOUNTED, Environment.MEDIA_MOUNTED_READ_ONLY)
 
 }
 
