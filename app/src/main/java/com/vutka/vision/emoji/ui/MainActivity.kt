@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity(), ScannerFragment.EmojiFileConsumer {
     private val permissions = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     private var requiresPermission = false
 
-    private val cameraPersistence : CameraPersistance by lazyFast {
+    private val cameraPersistence: CameraPersistance by lazyFast {
         CameraPersistance(applicationContext)
     }
 
@@ -40,25 +40,24 @@ class MainActivity : AppCompatActivity(), ScannerFragment.EmojiFileConsumer {
             setDisplayShowTitleEnabled(true)
         }
 
-        checkPermission(*permissions){
+        checkPermission(*permissions) {
             requestPermission()
         }
     }
 
 
-    private fun requestPermission(){
+    private fun requestPermission() {
         requiresPermission = true
-        ActivityCompat.requestPermissions(this , permissions , requestCode)
+        ActivityCompat.requestPermissions(this, permissions, requestCode)
     }
 
     override fun onResume() {
         super.onResume()
 
-        isGrantedPermission(*permissions){
-            if(requiresPermission){
+        isGrantedPermission(*permissions) {
+            if (requiresPermission) {
                 requiresPermission = false
             }
-
             supportFragmentManager.createOrReturnFragment(ScannerFragment::class.java.canonicalName)
         }
 
@@ -68,26 +67,25 @@ class MainActivity : AppCompatActivity(), ScannerFragment.EmojiFileConsumer {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        if(grantResults.all { PackageManager.PERMISSION_GRANTED == it }){
-            requiresPermission = false
-            Log.i(TAG , "all permission granted ")
-        }else {
+        if (grantResults.any { PackageManager.PERMISSION_DENIED == it }) {
             supportFragmentManager.createOrReturnFragment(MissingPermissionFragment::class.java.canonicalName)?.also {
                 (it as MissingPermissionFragment).openSettings = goToSettings()
             }
+        } else {
+            requiresPermission = false
         }
     }
 
     private fun goToSettings(): () -> Unit = {
-        with(Intent()){
+        with(Intent()) {
             action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-            data = Uri.fromParts("package" , packageName , null)
+            data = Uri.fromParts("package", packageName, null)
             startActivity(this)
         }
     }
 
 
-    private fun FragmentManager.createOrReturnFragment(fragmentClassName: String , addToBackStack:Boolean = false , arguments:String? = null, initialize: (fragment: Fragment) -> Unit ={}):Fragment {
+    private fun FragmentManager.createOrReturnFragment(fragmentClassName: String, addToBackStack: Boolean = false, arguments: String? = null, initialize: (fragment: Fragment) -> Unit = {}): Fragment {
 
         return when (fragmentClassName) {
             ScannerFragment::class.java.canonicalName -> createFragment(fragmentClassName, initialize, addToBackStack)
@@ -98,7 +96,7 @@ class MainActivity : AppCompatActivity(), ScannerFragment.EmojiFileConsumer {
     }
 
 
-    private fun createFragment(fragmentClassName : String , initialize : (fragment : Fragment) -> Unit , addToBackStack: Boolean , arguments:String? = null) :Fragment {
+    private fun createFragment(fragmentClassName: String, initialize: (fragment: Fragment) -> Unit, addToBackStack: Boolean, arguments: String? = null): Fragment {
 
         if (arguments != null) {
             return PreviewFragment.newInstance(arguments).also {
@@ -111,7 +109,7 @@ class MainActivity : AppCompatActivity(), ScannerFragment.EmojiFileConsumer {
                 }.commit()
             }
 
-        }else{
+        } else {
             return Fragment.instantiate(this, fragmentClassName).also {
                 initialize(it)
                 (it as? CameraPersistance.persistanceInstance)?.apply {
@@ -129,6 +127,6 @@ class MainActivity : AppCompatActivity(), ScannerFragment.EmojiFileConsumer {
     }
 
     override fun setEmojiFileName(path: String) {
-        supportFragmentManager.createOrReturnFragment(PreviewFragment::class.java.canonicalName, true , path)
+        supportFragmentManager.createOrReturnFragment(PreviewFragment::class.java.canonicalName, true, path)
     }
 }
