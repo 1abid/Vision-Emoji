@@ -22,9 +22,10 @@ class FaceTracker(private val emojiOverlay: EmojiOverlay,
 
     var enableEmoji: Boolean = true
 
-    @DrawableRes var drawableID: Int = 0
+    @DrawableRes
+    var drawableID: Int = 0
 
-    private val timer = Timer("enable_detection" , true)
+    private val timer = Timer("enable_detection", true)
 
     override fun onNewItem(faceId: Int, face: Face?) {
         super.onNewItem(faceId, face)
@@ -34,30 +35,30 @@ class FaceTracker(private val emojiOverlay: EmojiOverlay,
 
     override fun onUpdate(detection: Detector.Detections<Face>, face: Face?) {
         if (detection.detectorIsOperational()) {
-            /*if(enableEmoji)
-                getAppropriateEmoji(face)*/
-            getAppropriateEmoji(face)
-            emojiOverlay.add(emojiGraphic)
-            emojiGraphic.updateFace(face)
+            if (enableEmoji) {
+                getAppropriateEmoji(face)
+                emojiOverlay.add(emojiGraphic)
+                emojiGraphic.updateFace(face)
+            }
+
         }
     }
 
     override fun onMissing(detection: Detector.Detections<Face>) {
         emojiOverlay.remove(emojiGraphic)
-        enableEmoji = true
     }
 
     override fun onDone() {
         emojiOverlay.remove(emojiGraphic)
-        enableEmoji = true
     }
 
-    fun removeGraphic(){
+    fun removeGraphic() {
         emojiOverlay.remove(emojiGraphic)
         emojiGraphic.removeFace()
-        Log.d(TAG,"graphic removed")
-
-        timer.schedule(2000){
+        Log.d(TAG, "graphic removed")
+        enableEmoji = false
+        
+        timer.schedule(3000) {
             enableEmoji = true
         }
 
@@ -71,42 +72,36 @@ class FaceTracker(private val emojiOverlay: EmojiOverlay,
             if (it.isSmilingProbability >= 0.8 && it.isLeftEyeOpenProbability >= 0.8 && it.isRightEyeOpenProbability >= 0.8) {
                 Log.i(TAG, "happy")
                 emojiGraphic.drawableResId = R.drawable.ic_happy_normal
-                enableEmoji = false
                 drawableID = R.drawable.ic_happy_normal
             }
 
             if (it.isSmilingProbability <= 0.1 && it.isLeftEyeOpenProbability >= 0.8 && it.isRightEyeOpenProbability >= 0.8) {
                 Log.i(TAG, "SAD")
                 emojiGraphic.drawableResId = R.drawable.ic_sad
-                enableEmoji = false
                 drawableID = R.drawable.ic_sad
             }
 
             if (it.isSmilingProbability == -1.0F && it.isLeftEyeOpenProbability >= 0.8 && it.isRightEyeOpenProbability >= 0.8) {
                 Log.i(TAG, "shocked")
                 emojiGraphic.drawableResId = R.drawable.ic_shocked
-                enableEmoji = false
                 drawableID = R.drawable.ic_shocked
             }
 
             if (it.isLeftEyeOpenProbability >= 0.7 && it.isRightEyeOpenProbability <= 0.4) {
                 Log.i(TAG, "right wink")
                 emojiGraphic.drawableResId = R.drawable.ic_wink_right
-                enableEmoji = false
                 drawableID = R.drawable.ic_wink_right
             }
 
             if (it.isSmilingProbability <= 0.5 && it.isLeftEyeOpenProbability <= 0.4 && it.isRightEyeOpenProbability >= 0.7) {
                 Log.i(TAG, "left wink")
                 emojiGraphic.drawableResId = R.drawable.ic_wink_left
-                enableEmoji = false
                 drawableID = R.drawable.ic_wink_left
             }
 
             if (it.isLeftEyeOpenProbability <= 0.2f && it.isRightEyeOpenProbability <= 0.2f) {
                 Log.i(TAG, "dead")
                 emojiGraphic.drawableResId = R.drawable.ic_dead
-                enableEmoji = false
                 drawableID = R.drawable.ic_dead
             }
         }

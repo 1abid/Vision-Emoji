@@ -31,19 +31,23 @@ import kotlinx.android.synthetic.main.fragment_scanner.*
 /**
  * Created by abidhasanshaon on 11/3/18.
  */
+
+
+private const val TAG = "ScannerFragment"
+
 class ScannerFragment : Fragment(), CameraPersistance.persistanceInstance {
 
     override var cameraState: CameraPersistance? = null
 
     private val RC_HANDLE_GSM = 9001
 
-    private val TAG = ScannerFragment::class.java.simpleName
+
 
     private val googleApiAvailability = GoogleApiAvailability.getInstance()
 
     private var cameraSource: CameraSource? = null
 
-    private var faceTracker: FaceTracker? = null
+    private var faceTrackerFactory: GraphicFaceTrackerFactory? = null
 
     private var toggleOperationalState = false
     private var logOperationalDetector = false
@@ -58,7 +62,8 @@ class ScannerFragment : Fragment(), CameraPersistance.persistanceInstance {
                             .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                             .setLandmarkType(FaceDetector.ALL_LANDMARKS)
                             .build().apply {
-                                setProcessor(MultiProcessor.Builder(GraphicFaceTrackerFactory(emoji_overlay)).build())
+                                faceTrackerFactory = GraphicFaceTrackerFactory(emoji_overlay)
+                                setProcessor(MultiProcessor.Builder(faceTrackerFactory).build())
                             }
                 }
                 field
@@ -111,7 +116,8 @@ class ScannerFragment : Fragment(), CameraPersistance.persistanceInstance {
             }
 
             R.id.emoji_refresh -> {
-                faceTracker?.removeGraphic()
+                Log.i(TAG, "graphic refresh clicked")
+                faceTrackerFactory?.faceTracker?.removeGraphic()
                 activity?.invalidateOptionsMenu()
                 true
             }
@@ -176,7 +182,7 @@ class ScannerFragment : Fragment(), CameraPersistance.persistanceInstance {
 
     private val pictureCallback = CameraSource.PictureCallback { bytes ->
         context?.also {
-            BitmapGeneration(it, faceTracker?.drawableID, preview.width, preview.height, orientationFactor)?.apply {
+            BitmapGeneration(it, faceTrackerFactory?.faceTracker?.drawableID, preview.width, preview.height, orientationFactor)?.apply {
                 info
                 async(CommonPool) {
                     convert(bytes)
@@ -253,7 +259,7 @@ class ScannerFragment : Fragment(), CameraPersistance.persistanceInstance {
             preview?.releaseCameraSource()
             detector?.release()
             cameraSource = null
-            faceTracker = null
+            faceTrackerFactory?.faceTracker = null
             detector = null
         }
     }
@@ -269,8 +275,15 @@ class ScannerFragment : Fragment(), CameraPersistance.persistanceInstance {
     }
 
     private class GraphicFaceTrackerFactory(private val emojiOverlay: EmojiOverlay) : MultiProcessor.Factory<Face> {
-        override fun create(face: Face?): FaceTracker? = FaceTracker(emojiOverlay)
 
+        var faceTracker:FaceTracker? = null
+
+        override fun create(face: Face?): FaceTracker? {
+
+            faceTracker = FaceTracker(emojiOverlay)
+
+            return faceTracker
+        }
     }
 
     private fun Activity?.setFileName(path: String) {
