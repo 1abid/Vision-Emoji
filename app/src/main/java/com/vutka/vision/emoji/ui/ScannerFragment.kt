@@ -20,8 +20,8 @@ import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
 import com.vutka.vision.emoji.detection.FaceTracker
 import com.vutka.vision.emoji.R
-import com.vutka.vision.emoji.R.id.capture_photo
 import com.vutka.vision.emoji.detection.BitmapGeneration
+import com.vutka.vision.emoji.detection.EmojiOverlay
 import com.vutka.vision.emoji.utils.CameraPersistance
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
@@ -54,12 +54,11 @@ class ScannerFragment : Fragment(), CameraPersistance.persistanceInstance {
                 field
             } else {
                 if (emoji_overlay != null) {
-                    faceTracker = FaceTracker(emoji_overlay)
                     field = FaceDetector.Builder(context)
                             .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                             .setLandmarkType(FaceDetector.ALL_LANDMARKS)
                             .build().apply {
-                                setProcessor(MultiProcessor.Builder(GraphicFaceTrackerFactory(faceTracker)).build())
+                                setProcessor(MultiProcessor.Builder(GraphicFaceTrackerFactory(emoji_overlay)).build())
                             }
                 }
                 field
@@ -269,8 +268,8 @@ class ScannerFragment : Fragment(), CameraPersistance.persistanceInstance {
         }
     }
 
-    private class GraphicFaceTrackerFactory(private val faceTracker: FaceTracker?) : MultiProcessor.Factory<Face> {
-        override fun create(face: Face?): FaceTracker? = faceTracker
+    private class GraphicFaceTrackerFactory(private val emojiOverlay: EmojiOverlay) : MultiProcessor.Factory<Face> {
+        override fun create(face: Face?): FaceTracker? = FaceTracker(emojiOverlay)
 
     }
 

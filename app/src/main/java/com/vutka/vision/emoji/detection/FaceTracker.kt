@@ -28,15 +28,15 @@ class FaceTracker(private val emojiOverlay: EmojiOverlay,
 
     override fun onNewItem(faceId: Int, face: Face?) {
         super.onNewItem(faceId, face)
-        Log.i(TAG, "face found ${face?.position}")
-        emojiGraphic.faceId = face?.id
+        Log.i(TAG, "face found position ${face?.position} faceID $faceId")
+        emojiGraphic.faceId = faceId
     }
 
     override fun onUpdate(detection: Detector.Detections<Face>, face: Face?) {
         if (detection.detectorIsOperational()) {
-            if(enableEmoji)
-                getAppropriateEmoji(face)
-
+            /*if(enableEmoji)
+                getAppropriateEmoji(face)*/
+            getAppropriateEmoji(face)
             emojiOverlay.add(emojiGraphic)
             emojiGraphic.updateFace(face)
         }
