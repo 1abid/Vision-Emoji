@@ -68,12 +68,9 @@ class CameraSourcePreview(context: Context, attributeSet: AttributeSet) : ViewGr
 
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        Log.d(logTAG, "onLayout called with left:$l , top:$t , right:$r , bottom:$b")
         previewSize { preViewWidth, preViewHeight ->
             viewWidthHeight { viewWidth, viewHeight ->
-                Log.i(logTAG, "preview width $preViewWidth previewHeight $preViewHeight view width $viewWidth viewHeight $viewHeight")
                 viewRation(preViewWidth, preViewHeight, viewWidth, viewHeight) { viewWidthRation, viewHeightRation ->
-                    Log.i(logTAG, "view width ratio $viewWidthRation height ratio $viewHeightRation")
                     layoutChildrenMeasurement(preViewWidth, preViewHeight, viewWidth, viewHeight, viewWidthRation, viewHeightRation)
 
                 }
@@ -134,7 +131,7 @@ class CameraSourcePreview(context: Context, attributeSet: AttributeSet) : ViewGr
         }
     }
 
-    private fun CameraSource.size(function:(width: Int, height: Int)->Unit)=
+    private fun CameraSource.size(function:(width: Int, height: Int) -> Unit)=
         previewSize?.also {size->
             if (isPortrait){
                 function(Math.min(size.width, size.height), Math.max(size.width, size.height))

@@ -14,7 +14,13 @@ import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
+import java.io.File
 import java.util.Collections.rotate
+
+
+const val TAG = "BitmapGeneration"
+const val ALBUM_NAME = "Vision Emoji"
+
 
 class BitmapGeneration(
         private val context: Context,
@@ -39,9 +45,13 @@ class BitmapGeneration(
     suspend fun convert(bytes: ByteArray) = async(CommonPool) {
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
                 .rotateIfNecessary().let { newBitmap ->
-
+                    saveImage(newBitmap)
                 }
     }.await()
+
+    private fun saveImage(newBitmap: Bitmap) {
+
+    }
 
 
     private fun Bitmap.rotateIfNecessary(): Bitmap = if (shouldRotate(this)) {
@@ -71,6 +81,27 @@ class BitmapGeneration(
 
     private fun <T> SparseArray<T>.first(): T? =
             takeIf { it.size() > 0 }?.get(keyAt(0))
+
+
+    fun getPublicAlbumStorageDir(): File? {
+
+        var file: File? = null
+        isExternalStorageAvailable {
+            // Get the directory for the user's public pictures directory.
+            file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), ALBUM_NAME)
+            if (file?.mkdirs()!!) {
+                Log.e(TAG, "Directory not created")
+            }
+
+        }
+        return file
+    }
+
+
+    private fun isExternalStorageAvailable(function: () -> Unit) {
+        if (isExternalStorageWritable())
+            function()
+    }
 
     private fun isExternalStorageWritable(): Boolean = Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
 
