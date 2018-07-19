@@ -186,7 +186,7 @@ class ScannerFragment : Fragment(), CameraPersistance.persistanceInstance {
                 info
                 async(CommonPool) {
                     convert(bytes)
-                    activity?.setFileName("test file")
+                    activity?.setFileName(this@apply.fileName)
 
                 }
             }

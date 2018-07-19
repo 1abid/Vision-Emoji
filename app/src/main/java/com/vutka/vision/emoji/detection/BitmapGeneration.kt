@@ -12,10 +12,14 @@ import android.util.SparseArray
 import com.google.android.gms.vision.Frame
 import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
+import com.vutka.vision.emoji.utils.lazyFast
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
-import java.io.File
+import java.io.*
 import java.util.Collections.rotate
+import kotlin.reflect.KProperty
+import android.R.attr.path
+import com.vutka.vision.emoji.utils.createUniqueFileName
 
 
 const val TAG = "BitmapGeneration"
@@ -38,8 +42,16 @@ class BitmapGeneration(
 
     private var scaleFactor: Float = 1f
 
+    private val imageFilePath: File? by lazyFast {
+
+        File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), ALBUM_NAME)
+
+    }
+
+    val fileName: String = createUniqueFileName()+".jpg"
+
     val info = Log.i(BitmapGeneration::class.java.simpleName,
-            "resource id $drawableId width $width height $height orientation factor $orientationFactor")
+            "resource id $drawableId width $width height $height orientation factor $orientationFactor filename $fileName")
 
 
     suspend fun convert(bytes: ByteArray) = async(CommonPool) {
@@ -50,7 +62,32 @@ class BitmapGeneration(
     }.await()
 
     private fun saveImage(newBitmap: Bitmap) {
+        isExternalStorageWritable {
 
+            var outputStream : OutputStream? = null
+            val file = File(imageFilePath, fileName)
+
+            try {
+                outputStream = FileOutputStream(file)
+                newBitmap.toJPG().also {
+                    outputStream.write(it,0,it.size)
+                    Log.i(TAG, "image file path ${file.path}")
+                }
+            }catch (e : IOException){
+                Log.e(BitmapGeneration::class.java.name , "error writing image to public directory ",e)
+            }finally {
+                outputStream?.close()
+            }
+
+        }
+    }
+
+    private fun Bitmap.toJPG(): ByteArray {
+
+        return ByteArrayOutputStream().run {
+            compress(Bitmap.CompressFormat.JPEG, 100, this)
+            toByteArray()
+        }
     }
 
 
@@ -78,35 +115,15 @@ class BitmapGeneration(
         }
     }
 
-
-    private fun <T> SparseArray<T>.first(): T? =
-            takeIf { it.size() > 0 }?.get(keyAt(0))
-
-
-    fun getPublicAlbumStorageDir(): File? {
-
-        var file: File? = null
-        isExternalStorageAvailable {
-            // Get the directory for the user's public pictures directory.
-            file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), ALBUM_NAME)
-            if (file?.mkdirs()!!) {
-                Log.e(TAG, "Directory not created")
-            }
-
-        }
-        return file
-    }
-
-
-    private fun isExternalStorageAvailable(function: () -> Unit) {
-        if (isExternalStorageWritable())
+    private fun isExternalStorageWritable(function: () -> Unit) {
+        if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED)
             function()
     }
 
-    private fun isExternalStorageWritable(): Boolean = Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
-
-    private fun isExternalStorageReadable(): Boolean =
-            Environment.getExternalStorageState() in setOf(Environment.MEDIA_MOUNTED, Environment.MEDIA_MOUNTED_READ_ONLY)
+    private fun isExternalStorageReadable(function: () -> Unit) {
+        if (Environment.getExternalStorageState() in setOf(Environment.MEDIA_MOUNTED, Environment.MEDIA_MOUNTED_READ_ONLY))
+            function()
+    }
 
 }
 
