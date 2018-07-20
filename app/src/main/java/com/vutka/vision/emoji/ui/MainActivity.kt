@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity(), ScannerFragment.EmojiFileConsumer {
     private val TAG = MainActivity::class.java.simpleName
 
     private val requestCode = 0
-    private val permissions = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    private val permissions = arrayOf(Manifest.permission.CAMERA)
     private var requiresPermission = false
 
     private val cameraPersistence: CameraPersistance by lazyFast {

@@ -28,7 +28,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:paddingTop="24dp"
-        app:titleTextColor="@android:color/white"/>
+        android:paddingTop="24dp"/>
 
 </android.support.constraint.ConstraintLayout>

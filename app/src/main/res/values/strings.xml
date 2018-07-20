@@ -4,4 +4,5 @@
     <string name="settings">Settings</string>
     <string name="camera">Camera</string>
     <string name="not_operational">The required vision library hasn\'t been downloaded yet, please wait for some time</string>
+    <string name="share">Share</string>
 </resources>

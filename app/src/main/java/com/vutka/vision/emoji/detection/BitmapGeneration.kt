@@ -26,6 +26,7 @@ const val TAG = "BitmapGeneration"
 const val ALBUM_NAME = "Vision Emoji"
 
 
+
 class BitmapGeneration(
         private val context: Context,
         @DrawableRes private val drawableId: Int?,
@@ -44,11 +45,11 @@ class BitmapGeneration(
 
     private val imageFilePath: File? by lazyFast {
 
-        File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), ALBUM_NAME)
+        File(context.filesDir, fileName)
 
     }
 
-    val fileName: String = createUniqueFileName()+".jpg"
+    val fileName: String = createUniqueFileName() + ".jpg"
 
     val info = Log.i(BitmapGeneration::class.java.simpleName,
             "resource id $drawableId width $width height $height orientation factor $orientationFactor filename $fileName")
@@ -62,24 +63,21 @@ class BitmapGeneration(
     }.await()
 
     private fun saveImage(newBitmap: Bitmap) {
-        isExternalStorageWritable {
 
-            var outputStream : OutputStream? = null
-            val file = File(imageFilePath, fileName)
+        var outputStream: OutputStream? = null
 
-            try {
-                outputStream = FileOutputStream(file)
-                newBitmap.toJPG().also {
-                    outputStream.write(it,0,it.size)
-                    Log.i(TAG, "image file path ${file.path}")
-                }
-            }catch (e : IOException){
-                Log.e(BitmapGeneration::class.java.name , "error writing image to public directory ",e)
-            }finally {
-                outputStream?.close()
+        try {
+            outputStream = FileOutputStream(imageFilePath)
+            newBitmap.toJPG().also {
+                outputStream.write(it, 0, it.size)
             }
-
+        } catch (e: IOException) {
+            Log.e(BitmapGeneration::class.java.name, "error writing image to public directory ", e)
+        } finally {
+            outputStream?.close()
         }
+
+
     }
 
     private fun Bitmap.toJPG(): ByteArray {
@@ -115,15 +113,6 @@ class BitmapGeneration(
         }
     }
 
-    private fun isExternalStorageWritable(function: () -> Unit) {
-        if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED)
-            function()
-    }
-
-    private fun isExternalStorageReadable(function: () -> Unit) {
-        if (Environment.getExternalStorageState() in setOf(Environment.MEDIA_MOUNTED, Environment.MEDIA_MOUNTED_READ_ONLY))
-            function()
-    }
 
 }
 
