@@ -15,7 +15,6 @@ import android.support.v7.widget.ShareActionProvider
 import android.util.Log
 import android.view.*
 import com.vutka.vision.emoji.R
-import com.vutka.vision.emoji.detection.ALBUM_NAME
 import com.vutka.vision.emoji.utils.lazyFast
 import kotlinx.android.synthetic.main.fragment_preview.*
 import kotlinx.coroutines.experimental.CommonPool

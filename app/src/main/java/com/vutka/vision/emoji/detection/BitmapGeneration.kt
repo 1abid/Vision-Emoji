@@ -22,14 +22,13 @@ import android.R.attr.path
 import com.vutka.vision.emoji.utils.createUniqueFileName
 
 
-const val TAG = "BitmapGeneration"
-const val ALBUM_NAME = "Vision Emoji"
+private const val TAG = "BitmapGeneration"
+private const val ALBUM_NAME = "Vision Emoji"
 
 
 
 class BitmapGeneration(
         private val context: Context,
-        @DrawableRes private val drawableId: Int?,
         private val width: Int,
         private val height: Int,
         private val orientationFactor: Float = 1f
@@ -52,7 +51,7 @@ class BitmapGeneration(
     val fileName: String = createUniqueFileName() + ".jpg"
 
     val info = Log.i(BitmapGeneration::class.java.simpleName,
-            "resource id $drawableId width $width height $height orientation factor $orientationFactor filename $fileName")
+            "width $width height $height orientation factor $orientationFactor filename $fileName")
 
 
     suspend fun convert(bytes: ByteArray) = async(CommonPool) {

@@ -6,6 +6,9 @@ import android.support.v4.content.ContextCompat
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import com.google.android.gms.vision.face.Face
+import com.vutka.vision.emoji.R
+import com.vutka.vision.emoji.detection.FaceTracker
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Executors.callable
@@ -45,4 +48,6 @@ fun ViewGroup.forEachChildren(function: (view : View) -> Unit) {
         function(getChildAt(i))
     }
 }
+
+
 

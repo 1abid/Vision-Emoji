@@ -53,7 +53,7 @@ class EmojiGraphic(private val overlay: EmojiOverlay,
         half(face.width, face.height) { halfWidth, halfHeight ->
             bounds.left = (translateX(face.position.x + halfWidth) - scaleX(halfWidth)).toInt()
             bounds.right = (translateX(face.position.x + halfWidth) + scaleX(halfWidth)).toInt()
-            bounds.top = (translateY(face.position.y + halfHeight) - scaleY(halfHeight*-0.5F)).toInt() - face.height.toInt()
+            bounds.top = (translateY(face.position.y + halfHeight) - scaleY(halfHeight*-0.4F)).toInt() - face.height.toInt()
             bounds.bottom = (translateY(face.position.y + halfHeight) + scaleY(halfHeight*0.3F)).toInt() + halfHeight.toInt()
         }
 
