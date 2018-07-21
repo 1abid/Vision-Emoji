@@ -5,8 +5,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Matrix
-import android.os.Environment
-import android.support.annotation.DrawableRes
+import android.graphics.drawable.Drawable
+import android.support.v4.content.res.ResourcesCompat
 import android.util.Log
 import android.util.SparseArray
 import com.google.android.gms.vision.Frame
@@ -16,15 +16,11 @@ import com.vutka.vision.emoji.utils.lazyFast
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import java.io.*
-import java.util.Collections.rotate
-import kotlin.reflect.KProperty
-import android.R.attr.path
 import com.vutka.vision.emoji.utils.createUniqueFileName
 
 
 private const val TAG = "BitmapGeneration"
 private const val ALBUM_NAME = "Vision Emoji"
-
 
 
 class BitmapGeneration(
@@ -50,6 +46,8 @@ class BitmapGeneration(
 
     val fileName: String = createUniqueFileName() + ".jpg"
 
+    private val emojify = Emojify()
+
     val info = Log.i(BitmapGeneration::class.java.simpleName,
             "width $width height $height orientation factor $orientationFactor filename $fileName")
 
@@ -57,14 +55,67 @@ class BitmapGeneration(
     suspend fun convert(bytes: ByteArray) = async(CommonPool) {
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
                 .rotateIfNecessary().let { newBitmap ->
-                    saveImage(newBitmap)
+                    newBitmap?.detectFace()?.let { faces ->
+                        newBitmap?.setEmojiOverlay(faces)
+                    } ?: newBitmap
+                }.also {
+                    saveImage(it)
                 }
     }.await()
 
+
+    private fun Bitmap.setEmojiOverlay(faces: SparseArray<Face>): Bitmap{
+        return Bitmap.createBitmap(width, height, config).apply {
+            Canvas(this).apply {
+                drawBitmap(this@setEmojiOverlay, 0f, 0f, null)
+                scale(1f / scaleFactor, 1f / scaleFactor)
+                for (faceIndex in 0..faces.size()){
+                    Log.i(TAG, "face index $faceIndex")
+                }
+            }
+        }
+    }
+
+    private fun Drawable.draw(canvas: Canvas, face: Face) {
+        bounds.left = (face.position.x).toInt()
+        bounds.right = (face.position.x + face.width).toInt()
+        bounds.top = (face.position.y).toInt() - (face.height / 4).toInt()
+        bounds.bottom = (face.position.y + face.height).toInt() + (face.height.toInt() / 8)
+        canvas.rotate(-face.eulerZ, bounds.exactCenterX(), bounds.exactCenterY())
+        draw(canvas)
+    }
+
+    private fun Bitmap.detectFace(): SparseArray<Face>? =
+            createFaceDetector().run {
+                detect(Frame.Builder().setBitmap(scale()).build())?.apply {
+                    release()
+                }
+            }
+
+    private fun Bitmap.scale(): Bitmap? {
+        scaleFactor = Math.min(1024 / Math.max(width, height).toFloat(), 1f)
+        return if (scaleFactor < 1f) {
+            Bitmap.createBitmap((width * scaleFactor).toInt(), (height * scaleFactor).toInt(), config).also {
+                Canvas(it).apply {
+                    scale(scaleFactor, scaleFactor)
+                    drawBitmap(this@scale, 0f, 0f, null)
+                }
+            }
+        } else {
+            this
+        }
+    }
+
+
+    private fun createFaceDetector(): FaceDetector =
+            FaceDetector.Builder(context)
+                    .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
+                    .setLandmarkType(FaceDetector.ALL_LANDMARKS)
+                    .build()
+
+
     private fun saveImage(newBitmap: Bitmap) {
-
         var outputStream: OutputStream? = null
-
         try {
             outputStream = FileOutputStream(imageFilePath)
             newBitmap.toJPG().also {
@@ -75,8 +126,6 @@ class BitmapGeneration(
         } finally {
             outputStream?.close()
         }
-
-
     }
 
     private fun Bitmap.toJPG(): ByteArray {
