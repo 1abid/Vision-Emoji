@@ -6,12 +6,14 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.drawable.Drawable
+import android.support.annotation.DrawableRes
 import android.support.v4.content.res.ResourcesCompat
 import android.util.Log
 import android.util.SparseArray
 import com.google.android.gms.vision.Frame
 import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
+import com.vutka.vision.emoji.R
 import com.vutka.vision.emoji.utils.lazyFast
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
@@ -27,8 +29,9 @@ class BitmapGeneration(
         private val context: Context,
         private val width: Int,
         private val height: Int,
-        private val orientationFactor: Float = 1f
-) {
+        private val orientationFactor: Float = 1f,
+        @DrawableRes private val drawableId: Int
+        ) {
 
     private val isPortrait: Boolean
         get() = height > width
@@ -44,9 +47,11 @@ class BitmapGeneration(
 
     }
 
-    val fileName: String = createUniqueFileName() + ".jpg"
+    private val drawable: Drawable? by lazyFast {
+        ResourcesCompat.getDrawable(context.resources, drawableId, context.theme)
+    }
 
-    private val emojify = Emojify()
+    val fileName: String = createUniqueFileName() + ".jpg"
 
     val info = Log.i(BitmapGeneration::class.java.simpleName,
             "width $width height $height orientation factor $orientationFactor filename $fileName")
@@ -55,8 +60,8 @@ class BitmapGeneration(
     suspend fun convert(bytes: ByteArray) = async(CommonPool) {
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
                 .rotateIfNecessary().let { newBitmap ->
-                    newBitmap?.detectFace()?.let { faces ->
-                        newBitmap?.setEmojiOverlay(faces)
+                    newBitmap?.detectFace()?.let { face ->
+                        newBitmap?.setEmojiOverlay(face)
                     } ?: newBitmap
                 }.also {
                     saveImage(it)
@@ -64,14 +69,12 @@ class BitmapGeneration(
     }.await()
 
 
-    private fun Bitmap.setEmojiOverlay(faces: SparseArray<Face>): Bitmap{
+    private fun Bitmap.setEmojiOverlay(face: Face): Bitmap{
         return Bitmap.createBitmap(width, height, config).apply {
             Canvas(this).apply {
                 drawBitmap(this@setEmojiOverlay, 0f, 0f, null)
                 scale(1f / scaleFactor, 1f / scaleFactor)
-                for (faceIndex in 0..faces.size()){
-                    Log.i(TAG, "face index $faceIndex")
-                }
+                drawable?.draw(this , face)
             }
         }
     }
@@ -85,9 +88,9 @@ class BitmapGeneration(
         draw(canvas)
     }
 
-    private fun Bitmap.detectFace(): SparseArray<Face>? =
+    private fun Bitmap.detectFace(): Face? =
             createFaceDetector().run {
-                detect(Frame.Builder().setBitmap(scale()).build())?.apply {
+                detect(Frame.Builder().setBitmap(scale()).build())?.first().apply {
                     release()
                 }
             }
@@ -161,7 +164,39 @@ class BitmapGeneration(
         }
     }
 
+    private fun <T> SparseArray<T>.first(): T? =
+            takeIf { it.size() > 0 }?.get(keyAt(0))
 
+    fun getEmojiDrawableId(face: Face) : Drawable?{
+
+        var emojiDrawable:Drawable? = null
+            if (face.isSmilingProbability >= 0.8 && face.isLeftEyeOpenProbability >= 0.8 && face.isRightEyeOpenProbability >= 0.8) {
+                emojiDrawable = ResourcesCompat.getDrawable(context.resources, R.drawable.ic_happy_normal, context.theme)
+            }
+
+            if (face.isSmilingProbability <= 0.1 && face.isLeftEyeOpenProbability >= 0.8 && face.isRightEyeOpenProbability >= 0.8) {
+                emojiDrawable = ResourcesCompat.getDrawable(context.resources, R.drawable.ic_sad, context.theme)
+            }
+
+            if (face.isSmilingProbability == -1.0F && face.isLeftEyeOpenProbability >= 0.8 && face.isRightEyeOpenProbability >= 0.8) {
+                emojiDrawable = ResourcesCompat.getDrawable(context.resources, R.drawable.ic_shocked, context.theme)
+            }
+
+            if (face.isLeftEyeOpenProbability >= 0.7 && face.isRightEyeOpenProbability <= 0.4) {
+                emojiDrawable = ResourcesCompat.getDrawable(context.resources, R.drawable.ic_wink_right, context.theme)
+            }
+
+            if (face.isSmilingProbability <= 0.5 && face.isLeftEyeOpenProbability <= 0.4 && face.isRightEyeOpenProbability >= 0.7) {
+                emojiDrawable = ResourcesCompat.getDrawable(context.resources, R.drawable.ic_wink_left, context.theme)
+            }
+
+            if (face.isLeftEyeOpenProbability <= 0.2f && face.isRightEyeOpenProbability <= 0.2f) {
+                emojiDrawable = ResourcesCompat.getDrawable(context.resources, R.drawable.ic_dead, context.theme)
+            }
+
+
+        return emojiDrawable
+    }
 }
 
 

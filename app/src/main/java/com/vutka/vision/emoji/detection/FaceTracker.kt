@@ -24,6 +24,12 @@ class FaceTracker(private val emojiOverlay: EmojiOverlay,
 
     private val emojify = Emojify()
 
+    var drawableId: Int
+        get() = emojiGraphic.drawableResId
+        set(value) {
+            emojiGraphic.drawableResId = value
+        }
+
     override fun onNewItem(faceId: Int, face: Face?) {
         super.onNewItem(faceId, face)
         Log.i(TAG, "face found position ${face?.position} faceID $faceId")
@@ -34,7 +40,7 @@ class FaceTracker(private val emojiOverlay: EmojiOverlay,
     override fun onUpdate(detection: Detector.Detections<Face>, face: Face?) {
         if (detection.detectorIsOperational()) {
             if (enableEmoji) {
-                emojiGraphic.drawableResId = emojify.getEmojiDrawableId(face)!!
+                drawableId = emojify.getEmojiDrawableId(face)!!
                 emojiOverlay.add(emojiGraphic)
                 emojiGraphic.updateFace(face)
             }

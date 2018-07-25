@@ -182,7 +182,7 @@ class ScannerFragment : Fragment(), CameraPersistance.persistanceInstance {
 
     private val pictureCallback = CameraSource.PictureCallback { bytes ->
         context?.also {
-            BitmapGeneration(it, preview.width, preview.height, orientationFactor)?.apply {
+            BitmapGeneration(it, preview.width, preview.height, orientationFactor, faceTrackerFactory?.faceTracker!!.drawableId)?.apply {
                 info
                 async(CommonPool) {
                     convert(bytes)
