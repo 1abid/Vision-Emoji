@@ -31,7 +31,7 @@ class BitmapGeneration(
         private val height: Int,
         private val orientationFactor: Float = 1f,
         @DrawableRes private val drawableId: Int
-        ) {
+) {
 
     private val isPortrait: Boolean
         get() = height > width
@@ -51,17 +51,14 @@ class BitmapGeneration(
         ResourcesCompat.getDrawable(context.resources, drawableId, context.theme)
     }
 
+
     val fileName: String = createUniqueFileName() + ".jpg"
-
-    val info = Log.i(BitmapGeneration::class.java.simpleName,
-            "width $width height $height orientation factor $orientationFactor filename $fileName")
-
 
     suspend fun convert(bytes: ByteArray) = async(CommonPool) {
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
                 .rotateIfNecessary().let { newBitmap ->
-                    newBitmap?.detectFace()?.let { face ->
-                        newBitmap?.setEmojiOverlay(face)
+                    newBitmap.detectFace()?.let { face ->
+                        newBitmap.setEmojiOverlay(face)
                     } ?: newBitmap
                 }.also {
                     saveImage(it)
@@ -69,15 +66,25 @@ class BitmapGeneration(
     }.await()
 
 
-    private fun Bitmap.setEmojiOverlay(face: Face): Bitmap{
+    private fun Bitmap.setEmojiOverlay(faces: SparseArray<Face?>): Bitmap? {
         return Bitmap.createBitmap(width, height, config).apply {
             Canvas(this).apply {
                 drawBitmap(this@setEmojiOverlay, 0f, 0f, null)
                 scale(1f / scaleFactor, 1f / scaleFactor)
-                drawable?.draw(this , face)
+
+                if(faces.hasMoreThanOne()){
+                    for (faceIndex in 1 until faces.size()) {
+                        faces.get(faces.keyAt(faceIndex))?.let { face ->
+                            face.getEmojiDrawable()?.draw(this, face)
+                        }
+                    }
+                }else{
+                    drawable?.draw(this, faces.first()!!)
+                }
             }
         }
     }
+
 
     private fun Drawable.draw(canvas: Canvas, face: Face) {
         bounds.left = (face.position.x).toInt()
@@ -88,9 +95,9 @@ class BitmapGeneration(
         draw(canvas)
     }
 
-    private fun Bitmap.detectFace(): Face? =
+    private fun Bitmap.detectFace(): SparseArray<Face?> =
             createFaceDetector().run {
-                detect(Frame.Builder().setBitmap(scale()).build())?.first().apply {
+                detect(Frame.Builder().setBitmap(scale()).build()).apply {
                     release()
                 }
             }
@@ -114,6 +121,7 @@ class BitmapGeneration(
             FaceDetector.Builder(context)
                     .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                     .setLandmarkType(FaceDetector.ALL_LANDMARKS)
+                    .setTrackingEnabled(false)
                     .build()
 
 
@@ -164,40 +172,24 @@ class BitmapGeneration(
         }
     }
 
-    private fun <T> SparseArray<T>.first(): T? =
-            takeIf { it.size() > 0 }?.get(keyAt(0))
-
-    fun getEmojiDrawableId(face: Face) : Drawable?{
-
-        var emojiDrawable:Drawable? = null
-            if (face.isSmilingProbability >= 0.8 && face.isLeftEyeOpenProbability >= 0.8 && face.isRightEyeOpenProbability >= 0.8) {
-                emojiDrawable = ResourcesCompat.getDrawable(context.resources, R.drawable.ic_happy_normal, context.theme)
-            }
-
-            if (face.isSmilingProbability <= 0.1 && face.isLeftEyeOpenProbability >= 0.8 && face.isRightEyeOpenProbability >= 0.8) {
-                emojiDrawable = ResourcesCompat.getDrawable(context.resources, R.drawable.ic_sad, context.theme)
-            }
-
-            if (face.isSmilingProbability == -1.0F && face.isLeftEyeOpenProbability >= 0.8 && face.isRightEyeOpenProbability >= 0.8) {
-                emojiDrawable = ResourcesCompat.getDrawable(context.resources, R.drawable.ic_shocked, context.theme)
-            }
-
-            if (face.isLeftEyeOpenProbability >= 0.7 && face.isRightEyeOpenProbability <= 0.4) {
-                emojiDrawable = ResourcesCompat.getDrawable(context.resources, R.drawable.ic_wink_right, context.theme)
-            }
-
-            if (face.isSmilingProbability <= 0.5 && face.isLeftEyeOpenProbability <= 0.4 && face.isRightEyeOpenProbability >= 0.7) {
-                emojiDrawable = ResourcesCompat.getDrawable(context.resources, R.drawable.ic_wink_left, context.theme)
-            }
-
-            if (face.isLeftEyeOpenProbability <= 0.2f && face.isRightEyeOpenProbability <= 0.2f) {
-                emojiDrawable = ResourcesCompat.getDrawable(context.resources, R.drawable.ic_dead, context.theme)
-            }
-
-
-        return emojiDrawable
+    private fun Face.getEmojiDrawable(): Drawable? {
+        var drawableRes = Emojify().getEmojiDrawableId(this) ?: drawableId
+        return ResourcesCompat.getDrawable(context.resources , drawableRes, context.theme)
     }
+
+
+
+
+
+    private fun <T> SparseArray<T>.first(): T? {
+        return takeIf { it.size() > 0 }?.get(keyAt(0))
+    }
+
+    private fun SparseArray<Face?>.hasMoreThanOne() : Boolean = this.size() > 1
+
+
 }
+
 
 
 

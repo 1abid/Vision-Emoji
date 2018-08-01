@@ -37,7 +37,7 @@ class Emojify{
                 emojiDrawableResId = R.drawable.ic_wink_right
             }
 
-            if (it.isSmilingProbability <= 0.5 && it.isLeftEyeOpenProbability <= 0.4 && it.isRightEyeOpenProbability >= 0.7) {
+            if (it.isLeftEyeOpenProbability <= 0.4 && it.isRightEyeOpenProbability >= 0.7) {
                 Log.i(TAG, "left wink")
                 emojiDrawableResId = R.drawable.ic_wink_left
             }
