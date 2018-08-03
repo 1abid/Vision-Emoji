@@ -73,8 +73,9 @@ class BitmapGeneration(
                 scale(1f / scaleFactor, 1f / scaleFactor)
 
                 if(faces.hasMoreThanOne()){
-                    for (faceIndex in 1 until faces.size()) {
+                    for (faceIndex in 0 until faces.size()) {
                         faces.get(faces.keyAt(faceIndex))?.let { face ->
+                            Log.i(TAG,"face id ${face.id}")
                             face.getEmojiDrawable()?.draw(this, face)
                         }
                     }
@@ -89,8 +90,8 @@ class BitmapGeneration(
     private fun Drawable.draw(canvas: Canvas, face: Face) {
         bounds.left = (face.position.x).toInt()
         bounds.right = (face.position.x + face.width).toInt()
-        bounds.top = (face.position.y).toInt() - (face.height / 4).toInt()
-        bounds.bottom = (face.position.y + face.height).toInt() + (face.height.toInt() / 8)
+        bounds.top = (face.position.y).toInt() - (face.height / 6).toInt()
+        bounds.bottom = (face.position.y + face.height).toInt() + (face.height.toInt() / 10)
         canvas.rotate(-face.eulerZ, bounds.exactCenterX(), bounds.exactCenterY())
         draw(canvas)
     }
